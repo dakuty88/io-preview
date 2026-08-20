@@ -98,7 +98,7 @@ try {
   });
 } catch (e) {}
 </script>
-<script>/* React 18.3.1 UMD, инлайн: CSP артефакта блокирует CDN */
+<script>/* React 18.3.1 UMD, инлайн: CSP хостинга блокирует CDN */
 /**
  * @license React
  * react.production.min.js
@@ -1670,9 +1670,9 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     };
   }
   function parseDcText(src) {
-    const openMatch = /<x-dc(?:\s[^>]*)?>/.exec(src);
+    const openMatch = new RegExp("<x-" + "dc(?:\\s[^>]*)?>").exec(src);
     if (!openMatch) return null;
-    const close = src.lastIndexOf("</x-dc>");
+    const close = src.lastIndexOf("</x-" + "dc>");
     if (close === -1 || close < openMatch.index) return null;
     const template = src.slice(openMatch.index + openMatch[0].length, close);
     const doc = new DOMParser().parseFromString(src, "text/html");
@@ -3301,7 +3301,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
           console.error(
             '[dc-runtime] sibling fetch for "' + name + '":',
             url,
-            "has no <x-dc> block \u2014 not a Design Component."
+            "has no <x-" + "dc> block \u2014 not a Design Component."
           );
           return;
         }
@@ -3868,7 +3868,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     100% { transform: translateX(-38%); }
   }
 </style>
-<!-- leaflet: недоступен в артефакте -->
+
 
 
 </helmet>
