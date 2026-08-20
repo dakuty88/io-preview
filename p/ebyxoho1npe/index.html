@@ -9139,7 +9139,8 @@ class Component extends DCLogic {
       (() => {
         const wv = document.createElement('span');
         const ringMask = 'radial-gradient(circle, transparent 56%, #000 64%, #000 80%, transparent 88%)';
-        wv.style.cssText = 'position:fixed;left:' + (r.left + r.width / 2) + 'px;top:' + (r.top + r.height / 2) + 'px;width:150px;height:150px;margin:-75px 0 0 -75px;border-radius:50%;z-index:9997;pointer-events:none;' +
+        // кейфрейм ioWaterRing сам центрирует через translate(-50%,-50%) — без margin
+        wv.style.cssText = 'position:fixed;left:' + (r.left + r.width / 2) + 'px;top:' + (r.top + r.height / 2) + 'px;width:150px;height:150px;border-radius:50%;z-index:9997;pointer-events:none;' +
           '--wr-scale:7;' +
           'backdrop-filter:blur(3px) brightness(1.06) saturate(1.12);-webkit-backdrop-filter:blur(3px) brightness(1.06) saturate(1.12);' +
           '-webkit-mask-image:' + ringMask + ';mask-image:' + ringMask + ';' +
