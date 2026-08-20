@@ -3639,13 +3639,12 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     0%, 100% { transform: translateY(1.2px) scale(1); }
     50% { transform: translateY(-1.2px) scale(1.06); }
   }
-  /* кольца на воде под «белой обложкой» — рельеф светотенью, без контуров.
-     Ритм дыхания: волна расплывается к 68% цикла, дальше пауза-вдох */
+  /* кольцо на воде под «белой обложкой» — рельеф светотенью, без контуров;
+     конечный размах волны задаётся через --wr-scale (сценарии дирижёра) */
   @keyframes ioWaterRing {
     0%   { transform: translate(-50%, -50%) scale(0.64); opacity: 0; }
-    7%   { opacity: 1; }
-    68%  { transform: translate(-50%, -50%) scale(3.15); opacity: 0; }
-    100% { transform: translate(-50%, -50%) scale(3.15); opacity: 0; }
+    8%   { opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(var(--wr-scale, 3.15)); opacity: 0; }
   }
   @keyframes aiDash { to { stroke-dashoffset: -48; } }
   @keyframes aiShimmer {
@@ -7794,11 +7793,6 @@ class Component extends DCLogic {
         (convoAns && instant ? (convoUser ? bub(true, convoUser) : '') + ans(convoAns) :
         '<div data-chat-empty="1" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;transform:translateY(10px) scale(0.98);transition:opacity 340ms cubic-bezier(.22,1,.36,1), transform 420ms cubic-bezier(.22,1,.36,1);">' +
         '<div data-gem="1" style="opacity:0;transform:translateY(16px);position:relative;width:120px;height:120px;display:flex;align-items:center;justify-content:center;">' +
-        // водяные кольца «под белой обложкой»: рельеф из светотени (свет сверху,
-        // тень снизу), расплываются из-под орба как круги на воде. Пара волн
-        // друг за другом (0 и 0.45s) + пауза в хвосте цикла = ритм дыхания
-        '<span style="position:absolute;left:50%;top:50%;width:110px;height:110px;border-radius:50%;pointer-events:none;filter:blur(0.7px);box-shadow:0 12px 22px rgba(151,166,199,0.4), 0 -7px 14px rgba(255,255,255,0.95), inset 0 7px 12px rgba(255,255,255,0.92), inset 0 -9px 16px rgba(151,166,199,0.36);animation:ioWaterRing 5.4s cubic-bezier(.25,.6,.35,1) infinite backwards;"></span>' +
-        '<span style="position:absolute;left:50%;top:50%;width:110px;height:110px;border-radius:50%;pointer-events:none;filter:blur(0.7px);box-shadow:0 12px 22px rgba(151,166,199,0.4), 0 -7px 14px rgba(255,255,255,0.95), inset 0 7px 12px rgba(255,255,255,0.92), inset 0 -9px 16px rgba(151,166,199,0.36);animation:ioWaterRing 5.4s cubic-bezier(.25,.6,.35,1) 0.45s infinite backwards;"></span>' +
         '<span style="position:absolute;left:50%;top:50%;width:96px;height:96px;border-radius:50%;border:1px solid rgba(90,155,247,0.35);transform:translate(-50%,-50%) scale(0.9);opacity:0;animation:ioBreathRing 3.6s ease-out infinite backwards;"></span>' +
         '<span style="position:absolute;left:50%;top:50%;width:96px;height:96px;border-radius:50%;border:1px solid rgba(124,111,247,0.25);transform:translate(-50%,-50%) scale(0.9);opacity:0;animation:ioBreathRing 3.6s ease-out 1.8s infinite backwards;"></span>' +
         '<span style="position:relative;width:88px;height:88px;border-radius:50%;background:radial-gradient(circle at 38% 30%, #ffffff 0%, #eaf1fd 40%, #d9e2fb 75%, #e3dcfb 100%);box-shadow:0 0 0 0 rgba(90,155,247,0.25), 0 10px 30px rgba(47,124,246,0.18), inset 0 1px 0 rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center;animation:ioBreathOrb 3.6s ease-in-out infinite;">' +
@@ -7851,6 +7845,39 @@ class Component extends DCLogic {
         '<div style="position:absolute;left:0;right:0;bottom:0;height:calc(94px + var(--sab, 0px));pointer-events:none;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);background:rgba(228,234,246,0.55);border-top:1px solid rgba(255,255,255,0.5);"></div>' +
         '</div>';
       l.appendChild(c);
+      // дирижёр водяных колец на экране ожидания: случайные сценарии вылета —
+      // одиночная, пара-дыхание, каскад мелких, глубокий вдох, эхо; живые паузы
+      (() => {
+        const RIPPLE_SETS = [
+          [{ d: 0, dur: 4200, sc: 3.1 }],
+          [{ d: 0, dur: 4200, sc: 3.1 }, { d: 430, dur: 4200, sc: 2.8 }],
+          [{ d: 0, dur: 2900, sc: 2.1 }, { d: 260, dur: 3000, sc: 2.35 }, { d: 520, dur: 3200, sc: 2.6 }],
+          [{ d: 0, dur: 6600, sc: 3.7 }],
+          [{ d: 0, dur: 4200, sc: 3.2 }, { d: 850, dur: 2600, sc: 1.75 }]
+        ];
+        let lastSet = -1;
+        const spawn = (gem, w) => {
+          const s = document.createElement('span');
+          s.style.cssText = 'position:absolute;left:50%;top:50%;width:110px;height:110px;border-radius:50%;pointer-events:none;filter:blur(0.7px);opacity:0;' +
+            'box-shadow:0 12px 22px rgba(151,166,199,0.4), 0 -7px 14px rgba(255,255,255,0.95), inset 0 7px 12px rgba(255,255,255,0.92), inset 0 -9px 16px rgba(151,166,199,0.36);' +
+            '--wr-scale:' + w.sc + ';animation:ioWaterRing ' + w.dur + 'ms cubic-bezier(.25,.6,.35,1) ' + w.d + 'ms both;';
+          gem.insertBefore(s, gem.firstChild);
+          setTimeout(() => s.remove(), w.dur + w.d + 80);
+        };
+        const tick = () => {
+          if (!c.isConnected) return; // чат закрыт — дирижёр умирает вместе с ним
+          const emp = c.querySelector('[data-chat-empty]');
+          const gem = emp && emp.querySelector('[data-gem]');
+          if (gem && emp.getBoundingClientRect().width > 0 && getComputedStyle(emp).opacity !== '0') {
+            let i = Math.floor(Math.random() * RIPPLE_SETS.length);
+            if (i === lastSet) i = (i + 1) % RIPPLE_SETS.length;
+            lastSet = i;
+            RIPPLE_SETS[i].forEach((w) => spawn(gem, w));
+          }
+          setTimeout(tick, 3000 + Math.random() * 2400);
+        };
+        setTimeout(tick, 900);
+      })();
       const inEl = c.querySelector('[data-chat-in]');
       const attZone0 = c.querySelector('[data-tr-att]');
       if (attZone0) attZone0.__syncSend = () => { try { updPh(); } catch (err) {} };
@@ -8594,8 +8621,8 @@ class Component extends DCLogic {
       const s = Math.min(0.85, sp * 0.045);
       const a = Math.atan2(fvy, fvx);
       const fy = lastFY - floatLift();
-      floatEl.style.left = (lastFX - 18) + 'px';
-      floatEl.style.top = (fy - 18) + 'px';
+      floatEl.style.left = (lastFX - 22.5) + 'px';
+      floatEl.style.top = (fy - 22.5) + 'px';
       floatEl.style.transform = 'rotate(' + a.toFixed(3) + 'rad) scaleX(' + (1 + s).toFixed(3) + ') scaleY(' + (1 - s * 0.45).toFixed(3) + ') skewX(' + (-s * 18).toFixed(1) + 'deg) rotate(' + (-a).toFixed(3) + 'rad)';
       floatEl.style.borderRadius = (50 - s * 30).toFixed(0) + '% ' + (50 + s * 22).toFixed(0) + '% ' + (50 - s * 14).toFixed(0) + '% ' + (50 + s * 28).toFixed(0) + '% / 50% 50% 50% 50%';
       if (anchorEl) {
@@ -8610,7 +8637,7 @@ class Component extends DCLogic {
         if (p) {
           // нить гнётся против движения (инерция) и еле заметно дышит в покое
           const bow = Math.max(-30, Math.min(30, -fvx * 4)) + Math.sin(performance.now() / 340) * 2.5;
-          const y1 = lastFY - 7, y2 = fy + 15;
+          const y1 = lastFY - 7, y2 = fy + 19;
           p.setAttribute('d', 'M ' + lastFX + ' ' + y1 + ' Q ' + (lastFX + bow) + ' ' + ((y1 + y2) / 2) + ' ' + lastFX + ' ' + y2);
         }
         linkEl.style.opacity = gap > 6 ? '1' : '0';
@@ -8620,6 +8647,7 @@ class Component extends DCLogic {
       if (!floatEl) { floatRaf = 0; return; }
       fvx *= 0.88; fvy *= 0.88;
       renderFloat();
+      updateMood();
       floatRaf = requestAnimationFrame(floatTick);
     };
     const moveFloat = (cx, cy) => {
@@ -8631,10 +8659,76 @@ class Component extends DCLogic {
       fvy += (ddy - fvy) * 0.3;
       if (!floatRaf) floatRaf = requestAnimationFrame(floatTick);
       renderFloat();
-      hoverHighlight(findAiTarget(cx, cy - floatLift()));
+      const tgt = findAiTarget(cx, cy - floatLift());
+      hoverHighlight(tgt);
+      if (tgt) floatEl.__seenT = performance.now();
+      updateMood();
+    };
+    // настроение: цель -> изучает; разогнался -> смеётся; у края -> хитрит;
+    // долго без цели -> грустнеет. Вызывается и из rAF-тика: скорость гаснет,
+    // и «смех» после остановки сам возвращается к нейтральному
+    const updateMood = () => {
+      if (!floatEl) return;
+      const now = performance.now();
+      const sp2 = Math.hypot(fvx, fvy);
+      const onTarget = floatEl.__seenT && now - floatEl.__seenT < 400;
+      let mood = 'neutral';
+      if (onTarget) mood = 'curious';
+      else if (sp2 > 1.15) mood = 'happy';
+      else if (lastFX < 64 || lastFX > window.innerWidth - 64) mood = 'sly';
+      else if (now - Math.max(floatEl.__seenT || 0, liftT0 || now) > 3200) mood = 'sad';
+      setFace(mood);
+      // взгляд следует за движением
+      const eyesEl = floatEl.querySelector('[data-io-eyes]');
+      if (eyesEl) {
+        const ex = Math.max(-3, Math.min(3, fvx * 1.3));
+        const ey = Math.max(-2, Math.min(2, fvy * 1.3));
+        eyesEl.style.transform = 'translate(calc(-50% + ' + ex.toFixed(1) + 'px), calc(-60% + ' + ey.toFixed(1) + 'px))';
+      }
+    };
+    // робо-мимика оторванной капсулы: глаза и рот перестраиваются по настроению
+    const FACES = {
+      neutral: { l: [9, 9, '50%', ''], r: [9, 9, '50%', ''], m: [9, 4, '0 0 9px 9px', ''] },
+      curious: { l: [12, 12, '50%', ''], r: [8, 8, '50%', 'translateY(1px)'], m: [6, 6, '50%', ''] },
+      happy:   { l: [10, 4.5, '10px 10px 0 0', ''], r: [10, 4.5, '10px 10px 0 0', ''], m: [14, 7, '0 0 14px 14px', ''] },
+      sly:     { l: [10, 3.5, '2px 2px 5px 5px', 'translateX(2px)'], r: [10, 3.5, '2px 2px 5px 5px', 'translateX(2px)'], m: [10, 4, '0 0 12px 3px', 'translateX(-46%)'] },
+      sad:     { l: [8, 8, '50%', 'translateY(1.5px)'], r: [8, 8, '50%', 'translateY(1.5px)'], m: [10, 4.5, '10px 10px 0 0', 'translateX(-50%) translateY(1.5px)'] }
+    };
+    let blinkT = null;
+    const setFace = (mood) => {
+      if (!floatEl || floatEl.__mood === mood) return;
+      floatEl.__mood = mood;
+      const f = FACES[mood] || FACES.neutral;
+      const eyes = floatEl.querySelectorAll('[data-io-eye]');
+      const mouth = floatEl.querySelector('[data-io-mouth]');
+      [[eyes[0], f.l], [eyes[1], f.r]].forEach(([el, v]) => {
+        if (!el) return;
+        el.style.width = v[0] + 'px'; el.style.height = v[1] + 'px';
+        el.style.borderRadius = v[2]; el.style.transform = v[3];
+      });
+      if (mouth) {
+        mouth.style.width = f.m[0] + 'px'; mouth.style.height = f.m[1] + 'px';
+        mouth.style.borderRadius = f.m[2];
+        mouth.style.transform = f.m[3] || 'translateX(-50%)';
+      }
+    };
+    const startBlink = () => {
+      const tick = () => {
+        blinkT = setTimeout(() => {
+          // моргаем только в спокойных настроениях — смех/удивление не прерываем
+          if (floatEl && (floatEl.__mood === 'neutral' || floatEl.__mood === 'sly' || !floatEl.__mood)) {
+            const eyes = floatEl.querySelectorAll('[data-io-eye]');
+            eyes.forEach((e2) => { e2.style.transform = (e2.style.transform || '') + ' scaleY(0.12)'; });
+            setTimeout(() => { if (floatEl) { const m = floatEl.__mood; floatEl.__mood = null; setFace(m || 'neutral'); } }, 130);
+          }
+          tick();
+        }, 2200 + Math.random() * 1800);
+      };
+      tick();
     };
     const dropFloatFx = () => {
       liftT0 = 0;
+      if (blinkT) { clearTimeout(blinkT); blinkT = null; }
       if (anchorEl) { const a2 = anchorEl; anchorEl = null; a2.style.transition = 'opacity 260ms ease, transform 320ms ease'; a2.style.opacity = '0'; a2.style.transform = 'scale(0.4)'; setTimeout(() => a2.remove(), 340); }
       if (linkEl) { const l2 = linkEl; linkEl = null; l2.style.transition = 'opacity 200ms ease'; l2.style.opacity = '0'; setTimeout(() => l2.remove(), 240); }
     };
@@ -8738,12 +8832,22 @@ class Component extends DCLogic {
       if (pillWrapEl) pillWrapEl.style.animation = 'pillPop 520ms cubic-bezier(.22,1,.36,1)';
       setTimeout(() => resetChargeFx(), 420);
       floatEl = document.createElement('div');
-      floatEl.style.cssText = 'position:fixed;left:' + r.left + 'px;top:' + r.top + 'px;width:36px;height:36px;border-radius:50%;z-index:9999;pointer-events:none;display:flex;align-items:center;justify-content:center;' +
+      // в полёте капсула на четверть больше и с робо-лицом вместо букв
+      floatEl.style.cssText = 'position:fixed;left:' + (r.left + r.width / 2 - 22.5) + 'px;top:' + (r.top + r.height / 2 - 22.5) + 'px;width:45px;height:45px;border-radius:50%;z-index:9999;pointer-events:none;display:flex;align-items:center;justify-content:center;' +
         'background:radial-gradient(circle at 50% 38%, #f4f9ff 0%, #e6effa 70%, #dde8f6 100%);' +
         'box-shadow:0 0 0 0.7px rgba(120,140,180,0.3), 0 8px 22px rgba(40,60,100,0.3), 0 0 22px rgba(96,170,255,0.65);' +
         // после «отскока» отрыва — постоянный пульс свечения: капсула живая в полёте
         'animation:ioDetachPop 420ms cubic-bezier(.22,1,.36,1), ioFloatGlow 2.2s ease-in-out 420ms infinite;';
-      floatEl.innerHTML = '<span style="font-family:Nunito,system-ui,sans-serif;font-weight:700;font-size:15px;letter-spacing:-0.3px;color:#4a5a76;line-height:1;animation:ioFloatBob 2.2s ease-in-out infinite;">iO</span>';
+      floatEl.innerHTML =
+        '<span data-io-face="1" style="position:absolute;inset:3px;border-radius:50%;overflow:hidden;animation:ioFloatBob 2.2s ease-in-out infinite;' +
+        'background:radial-gradient(circle at 42% 32%, #26314d 0%, #141b2e 55%, #0b1020 100%);' +
+        'box-shadow:inset 0 1.5px 3px rgba(0,0,0,0.55), inset 0 -1px 3px rgba(120,160,255,0.2);">' +
+        '<span data-io-eyes="1" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-60%);display:flex;gap:7px;align-items:center;transition:transform 240ms cubic-bezier(.22,1,.36,1);">' +
+        '<span data-io-eye="l" style="width:9px;height:9px;border-radius:50%;background:#eef4ff;box-shadow:0 0 6px rgba(180,210,255,0.85);transition:width 200ms cubic-bezier(.22,1.2,.36,1), height 200ms cubic-bezier(.22,1.2,.36,1), border-radius 200ms ease, transform 200ms ease;"></span>' +
+        '<span data-io-eye="r" style="width:9px;height:9px;border-radius:50%;background:#eef4ff;box-shadow:0 0 6px rgba(180,210,255,0.85);transition:width 200ms cubic-bezier(.22,1.2,.36,1), height 200ms cubic-bezier(.22,1.2,.36,1), border-radius 200ms ease, transform 200ms ease;"></span>' +
+        '</span>' +
+        '<span data-io-mouth="1" style="position:absolute;left:50%;top:64%;transform:translateX(-50%);width:9px;height:4px;border-radius:0 0 9px 9px;background:#eef4ff;box-shadow:0 0 5px rgba(180,210,255,0.75);transition:width 200ms cubic-bezier(.22,1.2,.36,1), height 200ms cubic-bezier(.22,1.2,.36,1), border-radius 200ms ease, transform 200ms ease;"></span>' +
+        '</span>';
       document.body.appendChild(floatEl);
       // якорь касания: мягкое свечение остаётся под пальцем, капсула всплывает выше
       liftT0 = performance.now();
@@ -8765,6 +8869,8 @@ class Component extends DCLogic {
       const lp1 = linkEl.querySelector('[data-link-base]'), lp2 = linkEl.querySelector('[data-link-glow]');
       linkEl.__path = { setAttribute: (k, v) => { lp1.setAttribute(k, v); lp2.setAttribute(k, v); } };
       if (window.__ioHaptic) window.__ioHaptic('light');
+      floatEl.__seenT = 0;
+      startBlink();
       renderFloat();
       knob.style.animation = 'none';
       knob.style.opacity = '0';
@@ -8780,8 +8886,8 @@ class Component extends DCLogic {
       if (f) {
         const er = target.el.getBoundingClientRect();
         f.style.transition = 'left 460ms cubic-bezier(.4,0,.6,1), top 460ms cubic-bezier(.55,-0.2,.6,1), transform 460ms cubic-bezier(.4,0,.7,1), opacity 320ms ease 180ms, filter 420ms ease';
-        f.style.left = (er.left + er.width / 2 - 18) + 'px';
-        f.style.top = (er.top + er.height / 2 - 18) + 'px';
+        f.style.left = (er.left + er.width / 2 - 22.5) + 'px';
+        f.style.top = (er.top + er.height / 2 - 22.5) + 'px';
         f.style.transform = 'scale(0.15)';
         f.style.opacity = '0';
         f.style.filter = 'blur(5px)';
@@ -8804,10 +8910,11 @@ class Component extends DCLogic {
       const f = floatEl; floatEl = null;
       fvx = 0; fvy = 0; prevFX = 0; prevFY = 0;
       f.style.transition = 'left 480ms cubic-bezier(.22,1.5,.36,1), top 480ms cubic-bezier(.22,1.5,.36,1), transform 420ms cubic-bezier(.22,1.5,.36,1), box-shadow 480ms ease';
-      f.style.transform = 'none';
+      // прилетаем в док, ужимаясь обратно к его размеру (45 -> 36)
+      f.style.transform = 'scale(0.8)';
       f.style.borderRadius = '50%';
-      f.style.left = r.left + 'px';
-      f.style.top = r.top + 'px';
+      f.style.left = (r.left + r.width / 2 - 22.5) + 'px';
+      f.style.top = (r.top + r.height / 2 - 22.5) + 'px';
       f.style.boxShadow = '0 0 0 0.7px rgba(120,140,180,0.35), 0 1px 3px rgba(40,60,100,0.14)';
       setTimeout(() => {
         f.remove();
