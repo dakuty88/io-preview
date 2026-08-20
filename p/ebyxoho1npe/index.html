@@ -7874,7 +7874,7 @@ class Component extends DCLogic {
             lastSet = i;
             RIPPLE_SETS[i].forEach((w) => spawn(gem, w));
           }
-          setTimeout(tick, 3000 + Math.random() * 2400);
+          setTimeout(tick, 1400 + Math.random() * 500);
         };
         setTimeout(tick, 900);
       })();
@@ -8839,7 +8839,7 @@ class Component extends DCLogic {
         // после «отскока» отрыва — постоянный пульс свечения: капсула живая в полёте
         'animation:ioDetachPop 420ms cubic-bezier(.22,1,.36,1), ioFloatGlow 2.2s ease-in-out 420ms infinite;';
       floatEl.innerHTML =
-        '<span data-io-face="1" style="position:absolute;inset:3px;border-radius:50%;overflow:hidden;animation:ioFloatBob 2.2s ease-in-out infinite;' +
+        '<span data-io-face="1" style="position:absolute;inset:3px;border-radius:50%;overflow:hidden;' +
         'background:radial-gradient(circle at 42% 32%, #26314d 0%, #141b2e 55%, #0b1020 100%);' +
         'box-shadow:inset 0 1.5px 3px rgba(0,0,0,0.55), inset 0 -1px 3px rgba(120,160,255,0.2);">' +
         '<span data-io-eyes="1" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-60%);display:flex;gap:7px;align-items:center;transition:transform 240ms cubic-bezier(.22,1,.36,1);">' +
@@ -9809,6 +9809,38 @@ if (!document.__kbOutside) {
     }, { passive: false });
     knob.addEventListener('touchend', end);
     knob.addEventListener('touchcancel', end);
+
+    // отрыв капсулы работает и удержанием ПИЛЮЛИ вокруг кнопки iO: только
+    // long-press (сдвиг > 8px отменяет заряд, свайпы пилюли не трогаем)
+    if (pillWrapEl && !pillWrapEl.__holdDetach) {
+      pillWrapEl.__holdDetach = 1;
+      let phId = null, phX = 0, phY = 0;
+      pillWrapEl.addEventListener('pointerdown', (e) => {
+        if (busy || recordingOn || detachedOn) return;
+        if (knob.contains(e.target)) return; // кнопка обрабатывает сама
+        phId = e.pointerId; phX = e.clientX; phY = e.clientY;
+        try { pillWrapEl.setPointerCapture(phId); } catch (err) {}
+        dragging = true; startX = e.clientX; startY = e.clientY;
+        dx = 0; dy = 0; axis = null;
+        startCharge();
+      });
+      pillWrapEl.addEventListener('pointermove', (e) => {
+        if (e.pointerId !== phId) return;
+        if (detachedOn) { moveFloat(e.clientX, e.clientY); return; }
+        if (Math.abs(e.clientX - phX) > 8 || Math.abs(e.clientY - phY) > 8) {
+          phId = null; dragging = false; cancelCharge();
+        }
+      });
+      const phEnd = (e) => {
+        if (e.pointerId !== phId) return;
+        phId = null;
+        if (detachedOn && dragging) { end(e); return; }
+        dragging = false;
+        cancelCharge();
+      };
+      pillWrapEl.addEventListener('pointerup', phEnd);
+      pillWrapEl.addEventListener('pointercancel', phEnd);
+    }
 
     applyKnob(0, 0);
     drawMembrane();
