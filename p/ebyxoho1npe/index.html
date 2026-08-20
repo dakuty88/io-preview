@@ -3623,6 +3623,16 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     0%, 100% { opacity: 0.4; transform: translate(-50%,-50%) scale(1); }
     50% { opacity: 0.9; transform: translate(-50%,-50%) scale(1.07); }
   }
+  @keyframes ioAnchorPulse {
+    0%, 100% { opacity: 0.75; }
+    50% { opacity: 1; }
+  }
+  /* кольца на воде под «белой обложкой» — рельеф светотенью, без контуров */
+  @keyframes ioWaterRing {
+    0%   { transform: translate(-50%, -50%) scale(0.64); opacity: 0; }
+    10%  { opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(3.15); opacity: 0; }
+  }
   @keyframes aiDash { to { stroke-dashoffset: -48; } }
   @keyframes aiShimmer {
     0% { transform: translateX(-120%) skewX(-18deg); }
@@ -5467,6 +5477,52 @@ class Component extends DCLogic {
       const bu = () => { back.style.background = 'transparent'; };
       back.addEventListener('pointerup', bu);
       back.addEventListener('pointercancel', bu);
+    }
+    // свайп вправо по треду возвращает к списку: тред следует за пальцем,
+    // на трети ширины (или флике) коммитится, иначе пружинит назад.
+    // touch-action: pan-y на треде отдаёт горизонталь нам, вертикаль — скроллу
+    if (thread && !thread.__swipeBack) {
+      thread.__swipeBack = 1;
+      thread.style.touchAction = 'pan-y';
+      let sbId = null, sbX = 0, sbY = 0, sbDrag = false, sbW = 1, sbPrevX = 0, sbPrevT = 0, sbVx = 0;
+      thread.addEventListener('pointerdown', (e) => {
+        if (!e.isPrimary) return;
+        sbId = e.pointerId; sbX = e.clientX; sbY = e.clientY; sbDrag = false;
+        sbW = thread.getBoundingClientRect().width || 1;
+        sbPrevX = e.clientX; sbPrevT = performance.now(); sbVx = 0;
+      });
+      thread.addEventListener('pointermove', (e) => {
+        if (e.pointerId !== sbId) return;
+        const dx = e.clientX - sbX, dy = e.clientY - sbY;
+        if (!sbDrag) {
+          if (dx > 16 && Math.abs(dx) > Math.abs(dy) * 1.4) {
+            sbDrag = true;
+            thread.style.transition = 'none';
+            try { thread.setPointerCapture(sbId); } catch (err) {}
+          } else if (Math.abs(dy) > 14 || dx < -16) { sbId = null; return; }
+          else return;
+        }
+        const now = performance.now();
+        const dt = now - sbPrevT;
+        if (dt > 0) { sbVx = sbVx * 0.7 + ((e.clientX - sbPrevX) / dt) * 0.3; sbPrevX = e.clientX; sbPrevT = now; }
+        thread.style.transform = 'translateX(' + Math.max(0, dx) + 'px)';
+      });
+      const sbEnd = (e) => {
+        if (e.pointerId !== sbId) return;
+        const wasDrag = sbDrag;
+        sbId = null; sbDrag = false;
+        if (!wasDrag) return;
+        const dx = Math.max(0, e.clientX - sbX);
+        thread.style.transition = 'transform 420ms cubic-bezier(.32,.72,0,1)';
+        if (dx > sbW * 0.33 || sbVx > 0.55) {
+          thread.style.transform = 'translateX(100%)';
+          if (window.__ioHaptic) window.__ioHaptic('light');
+        } else {
+          thread.style.transform = 'translateX(0)';
+        }
+      };
+      thread.addEventListener('pointerup', sbEnd);
+      thread.addEventListener('pointercancel', sbEnd);
     }
     const ICON_PLAY = '<svg width="12" height="12" viewBox="0 0 24 24" fill="#ffffff"><path d="M7 4l13 8-13 8z"></path></svg>';
     const ICON_PAUSE = '<svg width="12" height="12" viewBox="0 0 24 24" fill="#ffffff"><rect x="6" y="4" width="4" height="16" rx="1.4"></rect><rect x="14" y="4" width="4" height="16" rx="1.4"></rect></svg>';
@@ -7722,6 +7778,11 @@ class Component extends DCLogic {
         (convoAns && instant ? (convoUser ? bub(true, convoUser) : '') + ans(convoAns) :
         '<div data-chat-empty="1" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;transform:translateY(10px) scale(0.98);transition:opacity 340ms cubic-bezier(.22,1,.36,1), transform 420ms cubic-bezier(.22,1,.36,1);">' +
         '<div data-gem="1" style="opacity:0;transform:translateY(16px);position:relative;width:120px;height:120px;display:flex;align-items:center;justify-content:center;">' +
+        // водяные кольца «под белой обложкой»: рельеф из светотени (свет сверху,
+        // тень снизу), расплываются из-под орба и тают, как круги на воде
+        '<span style="position:absolute;left:50%;top:50%;width:110px;height:110px;border-radius:50%;pointer-events:none;filter:blur(0.7px);box-shadow:0 12px 22px rgba(151,166,199,0.4), 0 -7px 14px rgba(255,255,255,0.95), inset 0 7px 12px rgba(255,255,255,0.92), inset 0 -9px 16px rgba(151,166,199,0.36);animation:ioWaterRing 4.8s cubic-bezier(.25,.6,.35,1) infinite;"></span>' +
+        '<span style="position:absolute;left:50%;top:50%;width:110px;height:110px;border-radius:50%;pointer-events:none;filter:blur(0.7px);box-shadow:0 12px 22px rgba(151,166,199,0.4), 0 -7px 14px rgba(255,255,255,0.95), inset 0 7px 12px rgba(255,255,255,0.92), inset 0 -9px 16px rgba(151,166,199,0.36);animation:ioWaterRing 4.8s cubic-bezier(.25,.6,.35,1) 1.6s infinite;"></span>' +
+        '<span style="position:absolute;left:50%;top:50%;width:110px;height:110px;border-radius:50%;pointer-events:none;filter:blur(0.7px);box-shadow:0 12px 22px rgba(151,166,199,0.4), 0 -7px 14px rgba(255,255,255,0.95), inset 0 7px 12px rgba(255,255,255,0.92), inset 0 -9px 16px rgba(151,166,199,0.36);animation:ioWaterRing 4.8s cubic-bezier(.25,.6,.35,1) 3.2s infinite;"></span>' +
         '<span style="position:absolute;left:50%;top:50%;width:96px;height:96px;border-radius:50%;border:1px solid rgba(90,155,247,0.35);transform:translate(-50%,-50%) scale(0.9);opacity:0;animation:ioBreathRing 3.6s ease-out infinite backwards;"></span>' +
         '<span style="position:absolute;left:50%;top:50%;width:96px;height:96px;border-radius:50%;border:1px solid rgba(124,111,247,0.25);transform:translate(-50%,-50%) scale(0.9);opacity:0;animation:ioBreathRing 3.6s ease-out 1.8s infinite backwards;"></span>' +
         '<span style="position:relative;width:88px;height:88px;border-radius:50%;background:radial-gradient(circle at 38% 30%, #ffffff 0%, #eaf1fd 40%, #d9e2fb 75%, #e3dcfb 100%);box-shadow:0 0 0 0 rgba(90,155,247,0.25), 0 10px 30px rgba(47,124,246,0.18), inset 0 1px 0 rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center;animation:ioBreathOrb 3.6s ease-in-out infinite;">' +
@@ -8501,15 +8562,39 @@ class Component extends DCLogic {
       hoverOv.animate([{ opacity: 0, transform: 'scale(0.94)' }, { opacity: 1, transform: 'scale(1)' }], { duration: 520, easing: 'cubic-bezier(.22,1,.36,1)' });
     };
     let fvx = 0, fvy = 0, prevFX = 0, prevFY = 0, floatRaf = 0;
+    // оторванная капсула всплывает НАД пальцем: под пальцем её не видно,
+    // а так и капсула читается, и цель подсвечивается там, куда смотрит глаз
+    const FLOAT_LIFT = 52;
+    let liftT0 = 0, anchorEl = null, linkEl = null;
+    // подъём по времени от отрыва (ease-out), не по rAF-кадрам — rAF в фоне замирает
+    const floatLift = () => {
+      if (!liftT0) return 0;
+      const p = Math.min(1, (performance.now() - liftT0) / 420);
+      return FLOAT_LIFT * (1 - Math.pow(1 - p, 3));
+    };
     const renderFloat = () => {
       if (!floatEl) return;
       const sp = Math.hypot(fvx, fvy);
       const s = Math.min(0.85, sp * 0.045);
       const a = Math.atan2(fvy, fvx);
+      const fy = lastFY - floatLift();
       floatEl.style.left = (lastFX - 18) + 'px';
-      floatEl.style.top = (lastFY - 18) + 'px';
+      floatEl.style.top = (fy - 18) + 'px';
       floatEl.style.transform = 'rotate(' + a.toFixed(3) + 'rad) scaleX(' + (1 + s).toFixed(3) + ') scaleY(' + (1 - s * 0.45).toFixed(3) + ') skewX(' + (-s * 18).toFixed(1) + 'deg) rotate(' + (-a).toFixed(3) + 'rad)';
       floatEl.style.borderRadius = (50 - s * 30).toFixed(0) + '% ' + (50 + s * 22).toFixed(0) + '% ' + (50 - s * 14).toFixed(0) + '% ' + (50 + s * 28).toFixed(0) + '% / 50% 50% 50% 50%';
+      if (anchorEl) {
+        anchorEl.style.left = (lastFX - 17) + 'px';
+        anchorEl.style.top = (lastFY - 17) + 'px';
+        // якорь чуть «плющится» от скорости — ощущение сцепления с пальцем
+        anchorEl.style.transform = 'rotate(' + a.toFixed(3) + 'rad) scaleX(' + (1 + s * 0.5).toFixed(3) + ') scaleY(' + (1 - s * 0.3).toFixed(3) + ') rotate(' + (-a).toFixed(3) + 'rad)';
+      }
+      if (linkEl) {
+        const gap = Math.max(0, floatLift() - 20);
+        linkEl.style.left = (lastFX - 1) + 'px';
+        linkEl.style.top = (lastFY - 8 - gap) + 'px';
+        linkEl.style.height = gap + 'px';
+        linkEl.style.opacity = gap > 6 ? '1' : '0';
+      }
     };
     const floatTick = () => {
       if (!floatEl) { floatRaf = 0; return; }
@@ -8526,7 +8611,12 @@ class Component extends DCLogic {
       fvy += (ddy - fvy) * 0.3;
       if (!floatRaf) floatRaf = requestAnimationFrame(floatTick);
       renderFloat();
-      hoverHighlight(findAiTarget(cx, cy));
+      hoverHighlight(findAiTarget(cx, cy - floatLift()));
+    };
+    const dropFloatFx = () => {
+      liftT0 = 0;
+      if (anchorEl) { const a2 = anchorEl; anchorEl = null; a2.style.transition = 'opacity 260ms ease, transform 320ms ease'; a2.style.opacity = '0'; a2.style.transform = 'scale(0.4)'; setTimeout(() => a2.remove(), 340); }
+      if (linkEl) { const l2 = linkEl; linkEl = null; l2.style.transition = 'opacity 200ms ease'; l2.style.opacity = '0'; setTimeout(() => l2.remove(), 240); }
     };
     let lastFX = 0, lastFY = 0;
     const AI_INFO = {
@@ -8634,6 +8724,20 @@ class Component extends DCLogic {
         'animation:ioDetachPop 420ms cubic-bezier(.22,1,.36,1);';
       floatEl.innerHTML = '<span style="font-family:Nunito,system-ui,sans-serif;font-weight:700;font-size:15px;letter-spacing:-0.3px;color:#4a5a76;line-height:1;">iO</span>';
       document.body.appendChild(floatEl);
+      // якорь касания: мягкое свечение остаётся под пальцем, капсула всплывает выше
+      liftT0 = performance.now();
+      anchorEl = document.createElement('div');
+      anchorEl.style.cssText = 'position:fixed;width:34px;height:34px;border-radius:50%;z-index:9998;pointer-events:none;' +
+        'background:radial-gradient(circle, rgba(120,175,255,0.55) 0%, rgba(120,175,255,0.22) 45%, rgba(120,175,255,0) 72%);' +
+        'box-shadow:0 0 18px rgba(96,170,255,0.5);animation:ioAnchorPulse 1.5s ease-in-out infinite;';
+      document.body.appendChild(anchorEl);
+      linkEl = document.createElement('div');
+      linkEl.style.cssText = 'position:fixed;width:2px;border-radius:1px;z-index:9998;pointer-events:none;opacity:0;' +
+        'background:linear-gradient(180deg, rgba(120,175,255,0.85) 0%, rgba(120,175,255,0.1) 100%);' +
+        'box-shadow:0 0 6px rgba(96,170,255,0.6);';
+      document.body.appendChild(linkEl);
+      if (window.__ioHaptic) window.__ioHaptic('light');
+      renderFloat();
       knob.style.animation = 'none';
       knob.style.opacity = '0';
       socketEl = document.createElement('span');
@@ -8642,6 +8746,7 @@ class Component extends DCLogic {
     };
     const dissolveInto = (target) => {
       detachedOn = false;
+      dropFloatFx();
       const f = floatEl; floatEl = null;
       fvx = 0; fvy = 0; prevFX = 0; prevFY = 0;
       if (f) {
@@ -8665,6 +8770,7 @@ class Component extends DCLogic {
     };
     const reattach = () => {
       detachedOn = false;
+      dropFloatFx();
       const r = knob.getBoundingClientRect();
       if (!floatEl) return;
       const f = floatEl; floatEl = null;
@@ -9500,7 +9606,8 @@ if (!document.__kbOutside) {
       dragging = false;
       knob.style.cursor = 'grab';
       if (detachedOn) {
-        const target = findAiTarget(lastFX, lastFY);
+        // цель берём под КАПСУЛОЙ (она всплыла над пальцем), не под точкой касания
+        const target = findAiTarget(lastFX, lastFY - floatLift());
         hoverHighlight(null);
         if (target) {
           dissolveInto(target);
