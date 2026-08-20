@@ -4837,6 +4837,30 @@ class Component extends DCLogic {
       glow.style.cssText = 'position:absolute;inset:0;border-radius:inherit;pointer-events:none;' +
         'box-shadow:0 0 0 2.5px rgba(58,126,247,0.5), 0 0 26px 5px rgba(96,170,255,0.4), inset 0 0 20px rgba(96,170,255,0.14);opacity:0;';
       frame.appendChild(glow);
+      // бегущий цветной сегмент по контуру — фирменный язык iO (FAB, капсула агента)
+      const runRing = document.createElement('div');
+      runRing.style.cssText = 'position:absolute;inset:-1px;border-radius:inherit;padding:2px;pointer-events:none;overflow:hidden;box-sizing:border-box;' +
+        '-webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);mask-composite:exclude;';
+      const seg = document.createElement('div');
+      seg.style.cssText = 'position:absolute;left:50%;top:50%;width:320%;aspect-ratio:1;transform:translate(-50%,-50%);' +
+        'background:conic-gradient(from 0deg, transparent 0deg, transparent 255deg, rgba(77,139,250,0.95) 300deg, rgba(139,92,255,0.95) 330deg, rgba(255,109,179,0.9) 350deg, transparent 360deg);';
+      runRing.appendChild(seg);
+      frame.appendChild(runRing);
+      try { seg.animate([{ transform: 'translate(-50%,-50%) rotate(0deg)' }, { transform: 'translate(-50%,-50%) rotate(360deg)' }], { duration: 1700, iterations: Infinity, easing: 'linear' }); } catch (e) {}
+      // уголки-скобки сканера
+      [['left', 'top'], ['right', 'top'], ['left', 'bottom'], ['right', 'bottom']].forEach(([hx, vy]) => {
+        const ck = document.createElement('span');
+        ck.style.cssText = 'position:absolute;width:13px;height:13px;pointer-events:none;' + hx + ':-4px;' + vy + ':-4px;' +
+          'border-' + vy + ':2.5px solid rgba(228,240,255,0.95);border-' + hx + ':2.5px solid rgba(228,240,255,0.95);' +
+          'border-' + vy + '-' + hx + '-radius:7px;filter:drop-shadow(0 0 4px rgba(96,170,255,0.8));';
+        frame.appendChild(ck);
+      });
+      // разовый блик при захвате цели
+      const shim = document.createElement('div');
+      shim.style.cssText = 'position:absolute;inset:0;border-radius:inherit;overflow:hidden;pointer-events:none;';
+      shim.innerHTML = '<span style="position:absolute;top:-20%;bottom:-20%;left:-40%;width:38%;background:linear-gradient(100deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0) 100%);filter:blur(4px);"></span>';
+      frame.appendChild(shim);
+      try { shim.firstElementChild.animate([{ left: '-40%' }, { left: '115%' }], { duration: 680, delay: 140, easing: 'cubic-bezier(.4,0,.4,1)', fill: 'forwards' }); } catch (e) {}
       hlBox.appendChild(frame);
       hlBox.__frame = frame;
       document.body.appendChild(hlBox);
@@ -5021,6 +5045,90 @@ class Component extends DCLogic {
       if (window.__ioSyncDock) window.__ioSyncDock();
     };
 
+    // универсальный режим: агент работает с ЛЮБЫМ текущим экраном — сеткой
+    // сэмплирует видимые блоки (elementFromPoint + подъём до «карточки») и облетает их
+    const sampleTargets = () => {
+      const ph = phone();
+      if (!ph) return [];
+      const pb = ph.getBoundingClientRect();
+      const out = [], seen = new Set();
+      for (let gy = 0.16; gy <= 0.8; gy += 0.11) {
+        for (let gx = 0.2; gx <= 0.82; gx += 0.15) {
+          let el = document.elementFromPoint(pb.left + pb.width * gx, pb.top + pb.height * gy);
+          let hop = 0;
+          while (el && hop++ < 6) {
+            const r2 = el.getBoundingClientRect();
+            if (r2.width > 70 && r2.width < pb.width * 0.97 && r2.height > 34 && r2.height < pb.height * 0.5) break;
+            el = el.parentElement;
+          }
+          if (!el || el === ph || seen.has(el)) continue;
+          const r3 = el.getBoundingClientRect();
+          if (!(r3.width > 70 && r3.height > 34 && r3.height < pb.height * 0.5 && r3.bottom > pb.top + 60 && r3.top < pb.bottom - 120)) continue;
+          seen.add(el);
+          out.push(el);
+        }
+      }
+      return out;
+    };
+    const runGeneric = async (pr) => {
+      setTask(1, 'Изучаю экран');
+      agentFace('think');
+      await flyTo(pr.left + pr.width * 0.5, pr.top + pr.height * 0.25, 480);
+      await wait(500);
+      if (stop) return;
+      let targets = sampleTargets();
+      setTask(2, 'Считываю элементы');
+      agentFace('focus');
+      for (let i = 0; i < Math.min(3, targets.length) && !stop; i++) {
+        clearHighlight();
+        await flyToEl(targets[i], 430);
+        highlightEl(targets[i]);
+        tapPulse(targets[i]);
+        await wait(760);
+      }
+      if (stop) return;
+      clearHighlight();
+      // листаем то, что скроллится на этом экране
+      const scEl = Array.prototype.slice.call(document.querySelectorAll('[data-ping-list], [data-ping-msgs], [data-chat-msgs], [data-side-list], [data-home]')).find((s2) => {
+        const rs = s2.getBoundingClientRect();
+        return rs.width > 0 && rs.height > 100 && s2.scrollHeight - s2.clientHeight > 60;
+      });
+      setTask(3, 'Листаю содержимое');
+      agentFace('think');
+      if (scEl) {
+        await flyTo(pr.left + pr.width * 0.5, pr.top + pr.height * 0.5, 400);
+        await smoothScroll(scEl, scEl.scrollTop + Math.min(320, scEl.scrollHeight - scEl.clientHeight - scEl.scrollTop), 900);
+        await wait(320);
+      } else { await wait(420); }
+      if (stop) return;
+      targets = sampleTargets();
+      setTask(4, 'Анализирую блоки');
+      agentFace('focus');
+      for (let i = 0; i < Math.min(2, targets.length) && !stop; i++) {
+        clearHighlight();
+        await flyToEl(targets[i], 430);
+        highlightEl(targets[i]);
+        tapPulse(targets[i]);
+        await wait(720);
+      }
+      if (stop) return;
+      clearHighlight();
+      // заминка с характером
+      agentFace('angry');
+      try { if (flyer) flyer.animate([{ translate: '0 0' }, { translate: '-4px 0' }, { translate: '4px 0' }, { translate: '0 0' }], { duration: 380, easing: 'ease-in-out' }); } catch (e) {}
+      await wait(900);
+      if (stop) return;
+      agentFace('think');
+      setTask(5, 'Свожу результат');
+      await flyTo(pr.left + pr.width * 0.5, pr.top + pr.height * 0.4, 440);
+      for (let s2 = 0; s2 < 4 && !stop; s2++) {
+        await flyTo(pr.left + pr.width * (0.32 + s2 * 0.11), pr.top + pr.height * (0.36 + (s2 % 2) * 0.1), 240);
+      }
+      if (stop) return;
+      setTask(6, 'Готово');
+      agentFace('happy');
+      await wait(1000);
+    };
     const run = async () => {
       if (running) return;
       running = true; stop = false;
@@ -5107,6 +5215,9 @@ class Component extends DCLogic {
       const pr = phone() ? phone().getBoundingClientRect() : { left: 0, top: 0, width: 390, height: 844, bottom: 844 };
       spawnFlyer(pr.left + pr.width / 2, pr.bottom - 90);
       setMode('io');
+      // не на «доме» (открыто приложение) — универсальный сценарий по текущему экрану
+      const shA = q('[data-app-shell]');
+      if (shA && getComputedStyle(shA).display !== 'none') { await runGeneric(pr); return; }
       setTask(1, 'Изучаю экран');
       agentFace('think');
       // быстрый облёт экрана: шапка → заголовок Top Stories
