@@ -9134,6 +9134,17 @@ class Component extends DCLogic {
       const lp1 = linkEl.querySelector('[data-link-base]'), lp2 = linkEl.querySelector('[data-link-glow]');
       linkEl.__path = { setAttribute: (k, v) => { lp1.setAttribute(k, v); lp2.setAttribute(k, v); } };
       if (window.__ioHaptic) window.__ioHaptic('light');
+      // волна отрыва: водяные кольца расходятся снизу от места капсулы —
+      // тот же язык, что на экране ожидания iO
+      [{ d: 0, dur: 1500, sc: 9 }, { d: 200, dur: 1250, sc: 6 }].forEach((w) => {
+        const wv = document.createElement('span');
+        wv.style.cssText = 'position:fixed;left:' + (r.left + r.width / 2) + 'px;top:' + (r.top + r.height / 2) + 'px;width:110px;height:110px;margin:-55px 0 0 -55px;border-radius:50%;z-index:9997;pointer-events:none;filter:blur(0.7px);' +
+          '--wr-scale:' + w.sc + ';' +
+          'box-shadow:0 14px 24px rgba(96,116,168,0.55), 0 -8px 15px rgba(255,255,255,0.95), inset 0 8px 13px rgba(255,255,255,0.9), inset 0 -11px 18px rgba(96,116,168,0.5);' +
+          'animation:ioWaterRing ' + w.dur + 'ms cubic-bezier(.25,.6,.35,1) ' + w.d + 'ms both;';
+        document.body.appendChild(wv);
+        setTimeout(() => wv.remove(), w.dur + w.d + 80);
+      });
       floatEl.__seenT = 0;
       startBlink();
       renderFloat();
