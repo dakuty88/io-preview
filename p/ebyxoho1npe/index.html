@@ -6387,8 +6387,11 @@ class Component extends DCLogic {
       const sy = 1 - gooey * 0.64;
       const travel = max() || 1;
       const hp = Math.min(1, Math.abs(x) / travel);
-      // жидкий прижим к краю: входит раньше и мягче
-      const hGoo = Math.pow(Math.max(0, (hp - 0.45) / 0.55), 1.15);
+      // жидкий прижим к краю: входит раньше и мягче, форма с инерцией —
+      // быстро тянется за жестом и медленно отпускает (вязкая капля)
+      const hGooRaw = Math.pow(Math.max(0, (hp - 0.45) / 0.55), 1.15);
+      applyKnob.__hg = (applyKnob.__hg || 0) + (hGooRaw - (applyKnob.__hg || 0)) * (hGooRaw > (applyKnob.__hg || 0) ? 0.5 : 0.18);
+      const hGoo = applyKnob.__hg;
       const io = knob.querySelector('[data-knob-io]');
       // буквы тают с началом жеста — не мешают жидкой деформации
       if (io) io.style.opacity = Math.max(0, 1 - Math.max(hp / 0.3, p / 0.3)).toFixed(2);
@@ -6421,8 +6424,11 @@ class Component extends DCLogic {
         const ry = 50 + gooey * 36;
         knob.style.borderRadius = rx.toFixed(1) + '% / ' + ry.toFixed(1) + '%';
       }
-      const fsx = sx * (1 - hGoo * 0.34);
-      const fsy = sy * (1 + hGoo * 0.3);
+      // при касании кнопка мягко поджимается — размазывание стартует с меньшего
+      // размера и выглядит естественней
+      const gs = 1 - (applyKnob.__grab || 0) * 0.1;
+      const fsx = sx * (1 - hGoo * 0.34) * gs;
+      const fsy = sy * (1 + hGoo * 0.34) * gs;
       if (hGoo > 0.01) knob.style.transformOrigin = x > 0 ? '100% 50%' : '0% 50%';
       if (io) io.style.transform = 'scale(' + (1 / fsx).toFixed(3) + ',' + (1 / fsy).toFixed(3) + ')';
       knob.style.transform = 'translate(' + x + 'px,' + ky.toFixed(2) + 'px) scale(' + fsx.toFixed(3) + ',' + fsy.toFixed(3) + ')';
@@ -6440,6 +6446,23 @@ class Component extends DCLogic {
       }
     };
 
+    // плавный «гриб-поджим» при касании: grabP анимируется к цели и
+    // прогоняет applyKnob с текущим состоянием жеста
+    let grabRaf = 0;
+    const grabTo = (t) => {
+      cancelAnimationFrame(grabRaf);
+      const step2 = () => {
+        if (recordingOn || detachedOn) { applyKnob.__grab = t; applyKnob.__hg = 0; return; }
+        const cur = applyKnob.__grab || 0;
+        const nxt = cur + (t - cur) * 0.22;
+        applyKnob.__grab = Math.abs(nxt - t) < 0.01 ? t : nxt;
+        applyKnob(dx, bulge);
+        // крутим, пока не доиграна и вязкая инерция формы (__hg), иначе кнопка
+        // застывает слегка размазанной
+        if (applyKnob.__grab !== t || (applyKnob.__hg || 0) > 0.004) grabRaf = requestAnimationFrame(step2);
+      };
+      grabRaf = requestAnimationFrame(step2);
+    };
     const spring = () => {
       springing = true;
       const myToken = ++springToken;
@@ -9535,6 +9558,7 @@ if (!document.__kbOutside) {
       try { knob.setPointerCapture(e.pointerId); } catch (err) {}
       knob.style.cursor = 'grabbing';
       knob.style.animation = 'none';
+      grabTo(1);
       startCharge();
     });
     knob.addEventListener('pointermove', (e) => {
@@ -9917,6 +9941,7 @@ if (!document.__kbOutside) {
       } catch (err) {}
       dragging = false;
       knob.style.cursor = 'grab';
+      grabTo(0);
       if (detachedOn) {
         // цель берём под КАПСУЛОЙ (она всплыла над пальцем), не под точкой касания
         const target = findAiTarget(lastFX, lastFY - floatLift());
@@ -9963,6 +9988,7 @@ if (!document.__kbOutside) {
       dragging = true; startX = t.clientX; startY = t.clientY;
       dx = 0; dy = 0; axis = null; springing = false; springToken++; bulge = 0; bulgeV = 0;
       knob.style.animation = 'none';
+      grabTo(1);
       startCharge();
     }, { passive: false });
     knob.addEventListener('touchmove', (e) => {
