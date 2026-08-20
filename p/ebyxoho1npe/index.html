@@ -8002,9 +8002,11 @@ class Component extends DCLogic {
               d: Math.random() * 380, dur: 620 + Math.random() * 420, r: 0.8 + Math.random() * 1.4,
               col: 'hsl(' + Math.round(216 + Math.random() * 46) + ', 90%, 64%)' });
           }
-          // фаза 2: амбиент — редкие звёздочки над буквами
+          // фаза 2: амбиент — редкие звёздочки над буквами, пиксельная пыль
+          // и глитч-скан из квадратиков вдоль строки
           const sparks = [];
-          let nextSparkAt = 0;
+          const dust = [];
+          let nextSparkAt = 0, nextDustAt = 0, sweepStart = -1, nextSweepAt = 0;
           const born = performance.now();
           const drawStar = (x, y, r, a, rot) => {
             g2.save();
@@ -8053,6 +8055,43 @@ class Component extends DCLogic {
               if (e3 >= 1) { sparks.splice(i3, 1); continue; }
               const a3 = Math.sin(e3 * Math.PI);
               drawStar(s3.x, s3.y - e3 * 6, s3.r * (0.55 + 0.45 * a3), a3 * 0.95, s3.rot + e3 * 0.5);
+            }
+            // пиксельная пыль: группка квадратиков откалывается от букв и всплывает
+            if (age > 1100 && now > nextDustAt) {
+              nextDustAt = now + 1900 + Math.random() * 1400;
+              const src = inText();
+              for (let di = 0; di < 7; di++) {
+                dust.push({ x: src.x + (Math.random() - 0.5) * 14, y: src.y + (Math.random() - 0.5) * 8,
+                  vx: (Math.random() - 0.5) * 8, vy: -10 - Math.random() * 16,
+                  r: 2 + Math.random() * 1.6, born: now, dur: 800 + Math.random() * 450,
+                  col: 'hsl(' + Math.round(216 + Math.random() * 46) + ', 88%, 62%)' });
+              }
+            }
+            for (let i4 = dust.length - 1; i4 >= 0; i4--) {
+              const d4 = dust[i4];
+              const e4 = (now - d4.born) / d4.dur;
+              if (e4 >= 1) { dust.splice(i4, 1); continue; }
+              g2.globalAlpha = (1 - e4) * 0.85;
+              g2.fillStyle = d4.col;
+              const q4 = d4.r * (1 - e4 * 0.4);
+              g2.fillRect(d4.x + d4.vx * e4 - q4 / 2, d4.y + d4.vy * e4 - q4 / 2, q4, q4);
+            }
+            // глитч-скан: шеренга квадратиков пробегает по строке слева направо
+            if (age > 1400 && sweepStart < 0 && now > nextSweepAt) { sweepStart = now; }
+            if (sweepStart > 0) {
+              const sp4 = (now - sweepStart) / 640;
+              if (sp4 >= 1) { sweepStart = -1; nextSweepAt = now + 3200 + Math.random() * 2200; }
+              else {
+                const hx = cxT - tw / 2 + sp4 * tw;
+                const fadeS = Math.sin(sp4 * Math.PI);
+                for (let qi = 0; qi < 6; qi++) {
+                  const qy = cyT + (Math.random() - 0.5) * 22;
+                  g2.globalAlpha = fadeS * (0.35 + Math.random() * 0.5);
+                  g2.fillStyle = qi % 2 ? '#dcecff' : 'hsl(' + Math.round(220 + Math.random() * 40) + ', 90%, 68%)';
+                  const qs = 2 + Math.random() * 2;
+                  g2.fillRect(hx + (Math.random() - 0.5) * 10 - qs / 2, qy - qs / 2, qs, qs);
+                }
+              }
             }
             requestAnimationFrame(draw);
           };
@@ -9152,6 +9191,12 @@ class Component extends DCLogic {
         setTimeout(() => holder.remove(), 2000);
       })();
       floatEl.__seenT = 0;
+      // стартовая точка = палец на кнопке, а не хвост прошлого жеста —
+      // иначе капсула появлялась не там, где её вырвали
+      lastFX = (typeof startX === 'number' && startX) ? startX : r.left + r.width / 2;
+      lastFY = (typeof startY === 'number' && startY) ? startY : r.top + r.height / 2;
+      prevFX = lastFX; prevFY = lastFY;
+      fvx = 0; fvy = 0;
       startBlink();
       renderFloat();
       knob.style.animation = 'none';
