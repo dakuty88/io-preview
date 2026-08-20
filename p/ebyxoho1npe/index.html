@@ -9134,17 +9134,20 @@ class Component extends DCLogic {
       const lp1 = linkEl.querySelector('[data-link-base]'), lp2 = linkEl.querySelector('[data-link-glow]');
       linkEl.__path = { setAttribute: (k, v) => { lp1.setAttribute(k, v); lp2.setAttribute(k, v); } };
       if (window.__ioHaptic) window.__ioHaptic('light');
-      // волна отрыва: водяные кольца расходятся снизу от места капсулы —
-      // тот же язык, что на экране ожидания iO
-      [{ d: 0, dur: 1500, sc: 9 }, { d: 200, dur: 1250, sc: 6 }].forEach((w) => {
+      // волна отрыва: ОДНА медленная волна-линза от точки отрыва — обод с
+      // backdrop-blur преломляет контент под собой, как волна по воде
+      (() => {
         const wv = document.createElement('span');
-        wv.style.cssText = 'position:fixed;left:' + (r.left + r.width / 2) + 'px;top:' + (r.top + r.height / 2) + 'px;width:110px;height:110px;margin:-55px 0 0 -55px;border-radius:50%;z-index:9997;pointer-events:none;filter:blur(0.7px);' +
-          '--wr-scale:' + w.sc + ';' +
-          'box-shadow:0 14px 24px rgba(96,116,168,0.55), 0 -8px 15px rgba(255,255,255,0.95), inset 0 8px 13px rgba(255,255,255,0.9), inset 0 -11px 18px rgba(96,116,168,0.5);' +
-          'animation:ioWaterRing ' + w.dur + 'ms cubic-bezier(.25,.6,.35,1) ' + w.d + 'ms both;';
+        const ringMask = 'radial-gradient(circle, transparent 56%, #000 64%, #000 80%, transparent 88%)';
+        wv.style.cssText = 'position:fixed;left:' + (r.left + r.width / 2) + 'px;top:' + (r.top + r.height / 2) + 'px;width:150px;height:150px;margin:-75px 0 0 -75px;border-radius:50%;z-index:9997;pointer-events:none;' +
+          '--wr-scale:7;' +
+          'backdrop-filter:blur(3px) brightness(1.06) saturate(1.12);-webkit-backdrop-filter:blur(3px) brightness(1.06) saturate(1.12);' +
+          '-webkit-mask-image:' + ringMask + ';mask-image:' + ringMask + ';' +
+          'background:radial-gradient(circle, rgba(255,255,255,0) 58%, rgba(255,255,255,0.28) 68%, rgba(160,180,220,0.14) 78%, rgba(255,255,255,0) 88%);' +
+          'animation:ioWaterRing 2100ms cubic-bezier(.3,.5,.35,1) both;';
         document.body.appendChild(wv);
-        setTimeout(() => wv.remove(), w.dur + w.d + 80);
-      });
+        setTimeout(() => wv.remove(), 2200);
+      })();
       floatEl.__seenT = 0;
       startBlink();
       renderFloat();
