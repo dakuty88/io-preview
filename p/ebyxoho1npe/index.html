@@ -3793,6 +3793,13 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   html[data-standalone], html[data-standalone] body { height: 100% !important; height: 100dvh !important; height: 100lvh !important; margin: 0 !important; overflow: hidden !important; }
   html[data-standalone] [data-desktop] { padding-top: calc(24px + env(safe-area-inset-top)) !important; }
   html[data-standalone] [data-app-shell] { padding-top: env(safe-area-inset-top) !important; box-sizing: border-box; }
+  /* шапка переписки ПИНГ дотягивается под системный статус-бар (как в нативных
+     мессенджерах): вытягиваем её вверх на величину safe-паддинга шелла и
+     возвращаем этот запас внутренним отступом самой шапки */
+  html[data-standalone] [data-ping-thread] > div:first-child {
+    margin-top: calc(-1 * env(safe-area-inset-top)) !important;
+    padding-top: calc(env(safe-area-inset-top) + 10px) !important;
+  }
   /* --sab: подъём нижнего слоя UI в standalone. Не весь safe-area inset, а только
      недостающее сверх дизайнерского отступа: max(0, inset − 18px). Дизайн даёт доку
      bottom 24px; на телефоне с inset 34px итог 24+16=40px — ~6pt над зоной
