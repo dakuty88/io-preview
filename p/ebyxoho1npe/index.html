@@ -4372,7 +4372,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
           <span style="position: absolute; right: -18%; top: -6%; width: 70%; height: 42%; border-radius: 50%; background: radial-gradient(50% 50% at 50% 50%, rgba(77,139,250,0.16), transparent 72%); filter: blur(30px); animation: auraDrift 15s ease-in-out infinite;"></span>
           <span style="position: absolute; left: -20%; bottom: 10%; width: 66%; height: 40%; border-radius: 50%; background: radial-gradient(50% 50% at 50% 50%, rgba(139,92,255,0.12), transparent 74%); filter: blur(32px); animation: auraDrift 19s ease-in-out 3s infinite;"></span>
         </span>
-        <div style="flex: none; padding: 56px 14px 10px; display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.82); backdrop-filter: blur(18px) saturate(140%); -webkit-backdrop-filter: blur(18px) saturate(140%); box-shadow: inset 0 -1px 0 rgba(120,150,210,0.14), 0 6px 20px rgba(30,45,85,0.08);">
+        <div style="flex: none; padding: 56px 14px 10px; display: flex; align-items: center; gap: 10px; background: rgba(239,245,255,0.88); backdrop-filter: blur(18px) saturate(140%); -webkit-backdrop-filter: blur(18px) saturate(140%); box-shadow: inset 0 -1px 0 rgba(120,150,210,0.14), 0 6px 20px rgba(30,45,85,0.08);">
           <span data-ping-back="1" style="flex: none; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 200ms ease;">
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#3a7ef7" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5L8 12l6.5 7"></path></svg>
           </span>
@@ -4657,9 +4657,44 @@ class Component extends DCLogic {
         'box-shadow:0 0 0 0.7px rgba(120,140,180,0.3), 0 10px 26px rgba(40,60,100,0.32), 0 0 26px rgba(96,170,255,0.7);' +
         'transition:left 620ms cubic-bezier(.5,0,.3,1), top 620ms cubic-bezier(.55,-0.04,.3,1), transform 300ms cubic-bezier(.22,1,.36,1);' +
         'animation:ioDetachPop 420ms cubic-bezier(.22,1,.36,1);';
-      flyer.innerHTML = '<span style="font-family:Nunito,system-ui,sans-serif;font-weight:800;font-size:15px;letter-spacing:-0.3px;color:#4a5a76;line-height:1;">iO</span>';
+      flyer.innerHTML =
+        '<span data-io-face="1" style="position:absolute;inset:3px;border-radius:50%;overflow:hidden;background:radial-gradient(circle at 42% 32%, #26314d 0%, #141b2e 55%, #0b1020 100%);box-shadow:inset 0 1.5px 3px rgba(0,0,0,0.55), inset 0 -1px 3px rgba(120,160,255,0.2);transition:background 400ms ease;">' +
+        '<span data-io-eyes="1" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-58%);display:flex;gap:6px;align-items:center;">' +
+        '<span data-io-eye="l" style="width:8px;height:8px;border-radius:50%;background:#eef4ff;box-shadow:0 0 5px rgba(180,210,255,0.85);transition:all 220ms cubic-bezier(.22,1.2,.36,1);"></span>' +
+        '<span data-io-eye="r" style="width:8px;height:8px;border-radius:50%;background:#eef4ff;box-shadow:0 0 5px rgba(180,210,255,0.85);transition:all 220ms cubic-bezier(.22,1.2,.36,1);"></span>' +
+        '</span>' +
+        '<span data-io-mouth="1" style="position:absolute;left:50%;top:63%;transform:translateX(-50%);width:8px;height:3.5px;border-radius:0 0 8px 8px;background:#eef4ff;box-shadow:0 0 4px rgba(180,210,255,0.75);transition:all 220ms cubic-bezier(.22,1.2,.36,1);"></span>' +
+        '</span>';
       document.body.appendChild(flyer);
       flyerMode = 'io';
+    };
+    // мимика агента: думает, сосредоточен, сердится (заминка), доволен (готово)
+    const AGENT_FACES = {
+      focus: { l: [8, 8, '50%', ''], r: [8, 8, '50%', ''], m: [8, 3.5, '0 0 8px 8px', ''] },
+      think: { l: [6.5, 6.5, '50%', 'translate(-1px,-2px)'], r: [9, 9, '50%', 'translate(1px,-3px)'], m: [5, 5, '50%', 'translateX(-3px)'] },
+      angry: { l: [9, 3, '2px', 'rotate(18deg)'], r: [9, 3, '2px', 'rotate(-18deg)'], m: [8, 2.5, '2px', ''] },
+      happy: { l: [9, 4, '9px 9px 0 0', ''], r: [9, 4, '9px 9px 0 0', ''], m: [12, 6, '0 0 12px 12px', ''] }
+    };
+    const agentFace = (mood) => {
+      if (!flyer || flyer.__mood === mood) return;
+      flyer.__mood = mood;
+      const f = AGENT_FACES[mood] || AGENT_FACES.focus;
+      const eyes = flyer.querySelectorAll('[data-io-eye]');
+      const mouth = flyer.querySelector('[data-io-mouth]');
+      [[eyes[0], f.l], [eyes[1], f.r]].forEach(([el, v]) => {
+        if (!el) return;
+        el.style.width = v[0] + 'px'; el.style.height = v[1] + 'px';
+        el.style.borderRadius = v[2]; el.style.transform = v[3];
+      });
+      if (mouth) {
+        mouth.style.width = f.m[0] + 'px'; mouth.style.height = f.m[1] + 'px';
+        mouth.style.borderRadius = f.m[2];
+        mouth.style.transform = 'translateX(-50%) ' + (f.m[3] || '');
+      }
+      const scr = flyer.querySelector('[data-io-face]');
+      if (scr) scr.style.background = mood === 'angry'
+        ? 'radial-gradient(circle at 42% 32%, #452033 0%, #2a1224 55%, #180a15 100%)'
+        : 'radial-gradient(circle at 42% 32%, #26314d 0%, #141b2e 55%, #0b1020 100%)';
     };
     // визуальные режимы летающего iO: покой / указатель (скролл) / нажатие / захват (перетаскивание) / карандаш
     const CUR = {
@@ -5073,6 +5108,7 @@ class Component extends DCLogic {
       spawnFlyer(pr.left + pr.width / 2, pr.bottom - 90);
       setMode('io');
       setTask(1, 'Изучаю экран');
+      agentFace('think');
       // быстрый облёт экрана: шапка → заголовок Top Stories
       const header = fd && fd.querySelector('[data-home] > div:first-child');
       if (header) { await flyToEl(header, 420); highlightEl(header); }
@@ -5083,6 +5119,7 @@ class Component extends DCLogic {
       const firstCard = fd && fd.querySelector('image-slot');
       const firstWrap = firstCard ? (firstCard.closest('div[style*="width: 296px"]') || firstCard) : null;
       setMode('point');
+      agentFace('focus');
       await ensureVisibleX(firstWrap, 500);
       if (stop) return;
       await flyToEl(firstWrap, 440);
@@ -5109,6 +5146,7 @@ class Component extends DCLogic {
       // 3) скролл к Top Stories
       clearHighlight();
       setTask(3, 'Листаю Top Stories');
+      agentFace('think');
       setMode('point');
       if (fd) { await flyTo(pr.left + pr.width * 0.5, pr.top + pr.height * 0.52, 380); await smoothScroll(fd, fd.scrollTop + 330, 950); }
       await wait(350);
@@ -5117,6 +5155,7 @@ class Component extends DCLogic {
       // 4) несколько карточек историй подряд
       const storyCards = fd ? fd.querySelectorAll('div[style*="width: 146px"]') : [];
       setTask(4, 'Выбираю статьи');
+      agentFace('focus');
       for (let sc = 0; sc < Math.min(3, storyCards.length) && !stop; sc++) {
         clearHighlight();
         await ensureVisibleX(storyCards[sc], 520);
@@ -5128,9 +5167,20 @@ class Component extends DCLogic {
       }
       if (stop) return;
 
-      // 5) перетаскивание (режим захвата) + прокрутка к More News
+      // имитация заминки: нужный блок «не находится» — iO сердится, трясётся
+      // и, выдохнув, пробует снова (мимика — часть демонстрации характера)
       clearHighlight();
+      agentFace('angry');
+      try { if (flyer) flyer.animate([{ translate: '0 0' }, { translate: '-4px 0' }, { translate: '4px 0' }, { translate: '-3px 0' }, { translate: '0 0' }], { duration: 400, easing: 'ease-in-out' }); } catch (e) {}
+      await wait(950);
+      if (stop) return;
+      agentFace('think');
+      await wait(450);
+      if (stop) return;
+
+      // 5) перетаскивание (режим захвата) + прокрутка к More News
       setTask(5, 'Собираю материалы');
+      agentFace('focus');
       setMode('grab');
       if (fd) {
         await flyTo(pr.left + pr.width * 0.5, pr.top + pr.height * 0.55, 380);
@@ -5163,6 +5213,7 @@ class Component extends DCLogic {
       if (stop) return;
       setMode('io');
       setTask(6, 'Готово');
+      agentFace('happy');
       await wait(1000);
     };
 
@@ -5512,12 +5563,16 @@ class Component extends DCLogic {
         if (!sbDrag) {
           if (dx > 16 && Math.abs(dx) > Math.abs(dy) * 1.4) {
             sbDrag = true;
-            thread.style.transition = 'none';
             // скругление должно резать и контент (шапку, композер), не только фон
             thread.style.overflow = 'hidden';
-            // превращение в карточку: ужимается вокруг левого центра, отступы
-            // появляются сверху и снизу — единый язык с карточкой iO-чата
             thread.style.transformOrigin = '0% 50%';
+            // ОТРЫВ: экран анимированно ужимается в карточку (как в iO-чате),
+            // первые ~0.3s транзишн сглаживает и следование за пальцем
+            thread.__liftT = performance.now();
+            thread.style.transition = 'transform 300ms cubic-bezier(.22,1,.36,1), border-radius 300ms ease, box-shadow 300ms ease';
+            thread.style.borderRadius = '34px';
+            thread.style.boxShadow = '-18px 0 40px rgba(20,35,80,0.3), 0 0 0 1px rgba(255,255,255,0.7)';
+            if (window.__ioHaptic) window.__ioHaptic('light');
             try { thread.setPointerCapture(sbId); } catch (err) {}
           } else if (Math.abs(dy) > 14 || dx < -16) { sbId = null; return; }
           else return;
@@ -5526,11 +5581,10 @@ class Component extends DCLogic {
         const dt = now - sbPrevT;
         if (dt > 0) { sbVx = sbVx * 0.7 + ((e.clientX - sbPrevX) / dt) * 0.3; sbPrevX = e.clientX; sbPrevT = now; }
         const dpx = Math.max(0, dx);
-        // контур листа, как у карточки iO-чата: скругление, тень и лёгкое ужатие
-        const cp = Math.min(1, dpx / (sbW * 0.2));
-        thread.style.transform = 'translateX(' + dpx + 'px) scale(' + (1 - cp * 0.06).toFixed(3) + ')';
-        thread.style.borderRadius = (cp * 30).toFixed(1) + 'px';
-        thread.style.boxShadow = '-18px 0 40px rgba(20,35,80,' + (cp * 0.3).toFixed(3) + '), 0 0 0 ' + (cp * 1).toFixed(1) + 'px rgba(255,255,255,' + (cp * 0.7).toFixed(2) + ')';
+        // после отрыва (300ms) транзишн снимается — карточка идёт строго за пальцем
+        if (thread.__liftT && performance.now() - thread.__liftT > 300) { thread.style.transition = 'none'; thread.__liftT = 0; }
+        const pp = Math.min(1, dpx / sbW);
+        thread.style.transform = 'translateX(' + dpx + 'px) scale(' + (0.9 - pp * 0.03).toFixed(3) + ')';
       });
       const sbEnd = (e) => {
         if (e.pointerId !== sbId) return;
@@ -5540,7 +5594,7 @@ class Component extends DCLogic {
         const dx = Math.max(0, e.clientX - sbX);
         thread.style.transition = 'transform 420ms cubic-bezier(.32,.72,0,1), border-radius 360ms ease, box-shadow 360ms ease';
         if (dx > sbW * 0.33 || sbVx > 0.55) {
-          thread.style.transform = 'translateX(100%) scale(0.94)';
+          thread.style.transform = 'translateX(100%) scale(0.88)';
           if (window.__ioHaptic) window.__ioHaptic('light');
           // контур снимаем после отъезда — тред скрыт, следующий вход чистый
           setTimeout(() => { thread.style.borderRadius = ''; thread.style.boxShadow = ''; thread.style.overflow = ''; thread.style.transform = 'translateX(100%)'; thread.style.transformOrigin = ''; }, 460);
