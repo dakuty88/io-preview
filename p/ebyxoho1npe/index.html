@@ -5515,6 +5515,9 @@ class Component extends DCLogic {
             thread.style.transition = 'none';
             // скругление должно резать и контент (шапку, композер), не только фон
             thread.style.overflow = 'hidden';
+            // превращение в карточку: ужимается вокруг левого центра, отступы
+            // появляются сверху и снизу — единый язык с карточкой iO-чата
+            thread.style.transformOrigin = '0% 50%';
             try { thread.setPointerCapture(sbId); } catch (err) {}
           } else if (Math.abs(dy) > 14 || dx < -16) { sbId = null; return; }
           else return;
@@ -5523,9 +5526,9 @@ class Component extends DCLogic {
         const dt = now - sbPrevT;
         if (dt > 0) { sbVx = sbVx * 0.7 + ((e.clientX - sbPrevX) / dt) * 0.3; sbPrevX = e.clientX; sbPrevT = now; }
         const dpx = Math.max(0, dx);
-        thread.style.transform = 'translateX(' + dpx + 'px)';
-        // контур листа, как у карточки iO-чата: скругление и тень слева
+        // контур листа, как у карточки iO-чата: скругление, тень и лёгкое ужатие
         const cp = Math.min(1, dpx / (sbW * 0.2));
+        thread.style.transform = 'translateX(' + dpx + 'px) scale(' + (1 - cp * 0.06).toFixed(3) + ')';
         thread.style.borderRadius = (cp * 30).toFixed(1) + 'px';
         thread.style.boxShadow = '-18px 0 40px rgba(20,35,80,' + (cp * 0.3).toFixed(3) + '), 0 0 0 ' + (cp * 1).toFixed(1) + 'px rgba(255,255,255,' + (cp * 0.7).toFixed(2) + ')';
       });
@@ -5537,15 +5540,15 @@ class Component extends DCLogic {
         const dx = Math.max(0, e.clientX - sbX);
         thread.style.transition = 'transform 420ms cubic-bezier(.32,.72,0,1), border-radius 360ms ease, box-shadow 360ms ease';
         if (dx > sbW * 0.33 || sbVx > 0.55) {
-          thread.style.transform = 'translateX(100%)';
+          thread.style.transform = 'translateX(100%) scale(0.94)';
           if (window.__ioHaptic) window.__ioHaptic('light');
           // контур снимаем после отъезда — тред скрыт, следующий вход чистый
-          setTimeout(() => { thread.style.borderRadius = ''; thread.style.boxShadow = ''; thread.style.overflow = ''; }, 460);
+          setTimeout(() => { thread.style.borderRadius = ''; thread.style.boxShadow = ''; thread.style.overflow = ''; thread.style.transform = 'translateX(100%)'; thread.style.transformOrigin = ''; }, 460);
         } else {
-          thread.style.transform = 'translateX(0)';
+          thread.style.transform = 'translateX(0) scale(1)';
           thread.style.borderRadius = '0px';
           thread.style.boxShadow = 'none';
-          setTimeout(() => { thread.style.borderRadius = ''; thread.style.boxShadow = ''; thread.style.overflow = ''; }, 400);
+          setTimeout(() => { thread.style.borderRadius = ''; thread.style.boxShadow = ''; thread.style.overflow = ''; thread.style.transformOrigin = ''; }, 400);
         }
       };
       thread.addEventListener('pointerup', sbEnd);
