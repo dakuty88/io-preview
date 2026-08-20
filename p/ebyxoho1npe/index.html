@@ -5520,7 +5520,12 @@ class Component extends DCLogic {
         const now = performance.now();
         const dt = now - sbPrevT;
         if (dt > 0) { sbVx = sbVx * 0.7 + ((e.clientX - sbPrevX) / dt) * 0.3; sbPrevX = e.clientX; sbPrevT = now; }
-        thread.style.transform = 'translateX(' + Math.max(0, dx) + 'px)';
+        const dpx = Math.max(0, dx);
+        thread.style.transform = 'translateX(' + dpx + 'px)';
+        // контур листа, как у карточки iO-чата: скругление и тень слева
+        const cp = Math.min(1, dpx / (sbW * 0.2));
+        thread.style.borderRadius = (cp * 30).toFixed(1) + 'px';
+        thread.style.boxShadow = '-14px 0 34px rgba(20,35,80,' + (cp * 0.2).toFixed(3) + '), -1px 0 0 rgba(255,255,255,' + (cp * 0.55).toFixed(2) + ')';
       });
       const sbEnd = (e) => {
         if (e.pointerId !== sbId) return;
@@ -5528,12 +5533,17 @@ class Component extends DCLogic {
         sbId = null; sbDrag = false;
         if (!wasDrag) return;
         const dx = Math.max(0, e.clientX - sbX);
-        thread.style.transition = 'transform 420ms cubic-bezier(.32,.72,0,1)';
+        thread.style.transition = 'transform 420ms cubic-bezier(.32,.72,0,1), border-radius 360ms ease, box-shadow 360ms ease';
         if (dx > sbW * 0.33 || sbVx > 0.55) {
           thread.style.transform = 'translateX(100%)';
           if (window.__ioHaptic) window.__ioHaptic('light');
+          // контур снимаем после отъезда — тред скрыт, следующий вход чистый
+          setTimeout(() => { thread.style.borderRadius = ''; thread.style.boxShadow = ''; }, 460);
         } else {
           thread.style.transform = 'translateX(0)';
+          thread.style.borderRadius = '0px';
+          thread.style.boxShadow = 'none';
+          setTimeout(() => { thread.style.borderRadius = ''; thread.style.boxShadow = ''; }, 400);
         }
       };
       thread.addEventListener('pointerup', sbEnd);
