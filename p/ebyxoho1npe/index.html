@@ -6381,14 +6381,17 @@ class Component extends DCLogic {
       const ease = 1 - Math.pow(1 - p, 2.2);
       const contact = Math.min(1, p / 0.3);
       const press = Math.max(0, (p - 0.28) / 0.72);
-      const gooey = Math.pow(press, 0.72);
+      const gooey = Math.pow(press, 0.62);
       const ky = -Math.sign(b) * room * contact;
       const sx = 1 + gooey * 1.35;
       const sy = 1 - gooey * 0.64;
       const travel = max() || 1;
       const hp = Math.min(1, Math.abs(x) / travel);
-      const hGoo = Math.pow(Math.max(0, (hp - 0.62) / 0.38), 0.9);
+      // жидкий прижим к краю: входит раньше и мягче
+      const hGoo = Math.pow(Math.max(0, (hp - 0.45) / 0.55), 1.15);
       const io = knob.querySelector('[data-knob-io]');
+      // буквы тают с началом жеста — не мешают жидкой деформации
+      if (io) io.style.opacity = Math.max(0, 1 - Math.max(hp / 0.3, p / 0.3)).toFixed(2);
       knob.style.background = press > 0.02
         ? 'radial-gradient(circle at 50% ' + (b > 0 ? 62 : 38) + '%, ' +
           'rgba(' + Math.round(244 - press * 72) + ',' + Math.round(249 - press * 34) + ',255,1) 0%, ' +
@@ -6403,11 +6406,23 @@ class Component extends DCLogic {
       knob.style.transformOrigin = Math.abs(b) < 0.5 ? '50% 50%' : (b > 0 ? '50% 0%' : '50% 100%');
       if (!this.pulses) this.pulses = document.querySelector('[data-pulses]');
       if (this.pulses) this.pulses.style.opacity = String(Math.max(0, 1 - Math.min(1, p * 2.5)) * Math.max(0, 1 - Math.min(1, hp * 2.2)));
-      const rx = 50 - gooey * 28 + hGoo * 16;
-      const ry = 50 + gooey * 36 - hGoo * 12;
-      knob.style.borderRadius = rx.toFixed(1) + '% / ' + ry.toFixed(1) + '%';
-      const fsx = sx * (1 - hGoo * 0.3);
-      const fsy = sy * (1 + hGoo * 0.24);
+      // капля у края: сторона контакта плющится, хвост вытягивается —
+      // по-жидкому асимметричные углы вместо равномерного сжатия
+      if (hGoo > 0.01) {
+        const nr = Math.max(16, 50 - hGoo * 36); // сторона контакта
+        const fr = Math.min(74, 50 + hGoo * 24); // хвост
+        const v1 = (50 + gooey * 30 + hGoo * 8).toFixed(1);
+        const v2 = (50 + gooey * 30 - hGoo * 20).toFixed(1);
+        knob.style.borderRadius = x > 0
+          ? fr + '% ' + nr + '% ' + nr + '% ' + fr + '% / ' + v1 + '% ' + v2 + '% ' + v2 + '% ' + v1 + '%'
+          : nr + '% ' + fr + '% ' + fr + '% ' + nr + '% / ' + v2 + '% ' + v1 + '% ' + v1 + '% ' + v2 + '%';
+      } else {
+        const rx = 50 - gooey * 28;
+        const ry = 50 + gooey * 36;
+        knob.style.borderRadius = rx.toFixed(1) + '% / ' + ry.toFixed(1) + '%';
+      }
+      const fsx = sx * (1 - hGoo * 0.34);
+      const fsy = sy * (1 + hGoo * 0.3);
       if (hGoo > 0.01) knob.style.transformOrigin = x > 0 ? '100% 50%' : '0% 50%';
       if (io) io.style.transform = 'scale(' + (1 / fsx).toFixed(3) + ',' + (1 / fsy).toFixed(3) + ')';
       knob.style.transform = 'translate(' + x + 'px,' + ky.toFixed(2) + 'px) scale(' + fsx.toFixed(3) + ',' + fsy.toFixed(3) + ')';
