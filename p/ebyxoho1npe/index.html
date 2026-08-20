@@ -4647,7 +4647,8 @@ class Component extends DCLogic {
     const wait = (ms) => new Promise((res) => { const t = setTimeout(res, window.__ioAgentFast ? Math.min(ms, 80) : ms); timers.push(t); });
     const clearTimers = () => { timers.forEach(clearTimeout); timers = []; };
     const phone = () => q('[data-phone]');
-    const feed = () => q('[data-home]');
+    // [data-home] в документе не один — берём видимый экземпляр ленты
+    const feed = () => Array.prototype.slice.call(document.querySelectorAll('[data-home]')).find((el) => el.getBoundingClientRect().width > 0) || q('[data-home]');
 
     const spawnFlyer = (x, y) => {
       flyer = document.createElement('div');
@@ -5215,13 +5216,18 @@ class Component extends DCLogic {
       const pr = phone() ? phone().getBoundingClientRect() : { left: 0, top: 0, width: 390, height: 844, bottom: 844 };
       spawnFlyer(pr.left + pr.width / 2, pr.bottom - 90);
       setMode('io');
-      // детальный сценарий — только на видимой ленте новостей; всё остальное
-      // (рабочий стол, любое приложение) агент изучает универсальным сценарием
-      const shA = q('[data-app-shell]');
-      const inAppA = shA && getComputedStyle(shA).display !== 'none';
-      const fdEl = feed();
-      const fdVisible = fdEl && getComputedStyle(fdEl).display !== 'none' && fdEl.getBoundingClientRect().width > 0;
-      if (inAppA || !fdVisible) { await runGeneric(pr); return; }
+      // детальный сценарий — когда на экране видима лента новостей (приложение
+      // «Новости»); всё остальное (рабочий стол, другие окна) — универсальный.
+      // Лента может разворачиваться после морфа Live — даём ей до ~1s проявиться
+      let fdVisible = false;
+      for (let fw = 0; fw < 4; fw++) {
+        const fdEl = feed();
+        fdVisible = !!(fdEl && getComputedStyle(fdEl).display !== 'none' && fdEl.getBoundingClientRect().width > 0);
+        if (fdVisible || stop) break;
+        await wait(300);
+      }
+      if (stop) return;
+      if (!fdVisible) { await runGeneric(pr); return; }
       setTask(1, 'Изучаю экран');
       agentFace('think');
       // быстрый облёт экрана: шапка → заголовок Top Stories
