@@ -5058,12 +5058,12 @@ class Component extends DCLogic {
           let hop = 0;
           while (el && hop++ < 6) {
             const r2 = el.getBoundingClientRect();
-            if (r2.width > 70 && r2.width < pb.width * 0.97 && r2.height > 34 && r2.height < pb.height * 0.5) break;
+            if (r2.width > 46 && r2.width < pb.width * 0.97 && r2.height > 30 && r2.height < pb.height * 0.5) break;
             el = el.parentElement;
           }
           if (!el || el === ph || seen.has(el)) continue;
           const r3 = el.getBoundingClientRect();
-          if (!(r3.width > 70 && r3.height > 34 && r3.height < pb.height * 0.5 && r3.bottom > pb.top + 60 && r3.top < pb.bottom - 120)) continue;
+          if (!(r3.width > 46 && r3.height > 30 && r3.height < pb.height * 0.5 && r3.bottom > pb.top + 60 && r3.top < pb.bottom - 120)) continue;
           seen.add(el);
           out.push(el);
         }
@@ -5215,9 +5215,13 @@ class Component extends DCLogic {
       const pr = phone() ? phone().getBoundingClientRect() : { left: 0, top: 0, width: 390, height: 844, bottom: 844 };
       spawnFlyer(pr.left + pr.width / 2, pr.bottom - 90);
       setMode('io');
-      // не на «доме» (открыто приложение) — универсальный сценарий по текущему экрану
+      // детальный сценарий — только на видимой ленте новостей; всё остальное
+      // (рабочий стол, любое приложение) агент изучает универсальным сценарием
       const shA = q('[data-app-shell]');
-      if (shA && getComputedStyle(shA).display !== 'none') { await runGeneric(pr); return; }
+      const inAppA = shA && getComputedStyle(shA).display !== 'none';
+      const fdEl = feed();
+      const fdVisible = fdEl && getComputedStyle(fdEl).display !== 'none' && fdEl.getBoundingClientRect().width > 0;
+      if (inAppA || !fdVisible) { await runGeneric(pr); return; }
       setTask(1, 'Изучаю экран');
       agentFace('think');
       // быстрый облёт экрана: шапка → заголовок Top Stories
