@@ -3796,11 +3796,27 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   /* шапка переписки ПИНГ дотягивается под системный статус-бар (как в нативных
      мессенджерах): вытягиваем её вверх на величину safe-паддинга шелла и
      возвращаем этот запас внутренним отступом самой шапки */
+  /* ПИНГ: объём аватаров, градиентные бейджи, табличные цифры времени */
+  [data-ping-row] > span:first-child {
+    position: relative;
+    overflow: visible !important;
+    box-shadow: inset 0 1.5px 1px rgba(255,255,255,0.5), inset 0 -3px 6px rgba(30,50,90,0.10);
+  }
+  [data-ping-badge] {
+    background: linear-gradient(180deg, #4d8bfa, #2f6fe8) !important;
+    box-shadow: 0 3px 8px rgba(47,111,232,0.35), inset 0 1px 0 rgba(255,255,255,0.25);
+  }
+  [data-ping], [data-ping-thread] { font-variant-numeric: tabular-nums; }
+  [data-ping-thread-av] { position: relative; }
+  /* онлайн-точка живёт только в строках списка: копию в шапке треда прячем */
+  [data-ping-thread-av] [data-online-dot] { display: none; }
+  /* ПИНГ: аврора лежит под контентом */
+  [data-ping] > *:not([data-ping-aura]), [data-ping-thread] > *:not([data-ping-aura]) { position: relative; z-index: 1; }
   /* ПИНГ: активная вкладка таббара — мягкая пилюля */
   [data-ping-tab] { border-radius: 15px; transition: color 220ms ease, background 240ms cubic-bezier(.22,1,.36,1); }
   [data-ping-tab][data-on="1"] { background: rgba(58,126,247,0.11); }
   /* ПИНГ: в standalone safe-зона уже даёт верхний отступ — макетные 60px лишние */
-  html[data-standalone] [data-ping] > div:first-child { padding-top: 16px !important; }
+  html[data-standalone] [data-ping] > div:first-of-type { padding-top: 16px !important; }
   html[data-standalone] [data-ping-thread] > div:first-child {
     margin-top: calc(-1 * env(safe-area-inset-top)) !important;
     padding-top: calc(env(safe-area-inset-top) + 10px) !important;
@@ -4065,6 +4081,11 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     </div>
 
     <div data-ping="1" data-screen-label="ПИНГ — список чатов" style="display: none; flex: 1; min-height: 0; position: relative; z-index: 1; flex-direction: column; background: #eff5ff;">
+      <span data-ping-aura="1" style="position: absolute; left: -10%; right: -10%; top: -110px; height: 300px; z-index: 0; pointer-events: none; -webkit-mask-image: linear-gradient(180deg, #000 0, #000 55%, transparent 100%); mask-image: linear-gradient(180deg, #000 0, #000 55%, transparent 100%);">
+        <span style="position: absolute; left: -6%; top: 8%; width: 62%; height: 70%; border-radius: 50%; background: radial-gradient(50% 50% at 50% 50%, rgba(77,139,250,0.34), transparent 72%); filter: blur(26px); animation: auraDrift 11s ease-in-out infinite;"></span>
+        <span style="position: absolute; right: -4%; top: -6%; width: 56%; height: 66%; border-radius: 50%; background: radial-gradient(50% 50% at 50% 50%, rgba(139,92,255,0.26), transparent 74%); filter: blur(28px); animation: auraDrift 14s ease-in-out 2s infinite;"></span>
+        <span style="position: absolute; left: 34%; top: 26%; width: 44%; height: 58%; border-radius: 50%; background: radial-gradient(50% 50% at 50% 50%, rgba(255,109,179,0.16), transparent 76%); filter: blur(30px); animation: auraDrift 17s ease-in-out 4s infinite;"></span>
+      </span>
       <div style="flex: none; padding: 60px 20px 8px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
         <span style="display: flex; align-items: center; gap: 8px;">
           <span data-ping-logo="1" style="width: 27px; height: 27px; border-radius: 9px; overflow: hidden; display: block; box-shadow: 0 3px 8px rgba(30,50,90,0.18);">
@@ -4102,7 +4123,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
         <span data-ping-caption="1" style="padding: 4px 6px 0; font-size: 12px; font-weight: 700; letter-spacing: 0.3px; text-transform: uppercase; color: #98a1b3;">Закреплённое</span>
         <div data-ping-pinned="1" style="flex: none; background: #ffffff; border-radius: 20px; box-shadow: 0 6px 18px rgba(30,45,85,0.08); overflow: hidden;">
           <span data-ping-row="1" data-cat="бизнес" data-name="План запуска продукта" data-thread="launch" data-prev="Дима: Документ" style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; cursor: pointer; transition: background 200ms ease;">
-            <span style="flex: none; width: 46px; height: 46px; border-radius: 15px; overflow: hidden; background: linear-gradient(160deg, #ffd9a8, #f7b25c); display: flex; align-items: center; justify-content: center; font-family: Nunito, system-ui, sans-serif; font-weight: 800; font-size: 16.5px; color: #8a4d10;">ПЗ</span>
+            <span style="flex: none; width: 46px; height: 46px; border-radius: 15px; overflow: hidden; background: linear-gradient(160deg, #ffd9a8, #f7b25c); display: flex; align-items: center; justify-content: center; font-family: Nunito, system-ui, sans-serif; font-weight: 800; font-size: 16.5px; color: #8a4d10;"><img src="assets/avatars/rocket.png" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit;">ПЗ</span>
             <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px;">
               <span style="display: flex; align-items: center; gap: 6px;">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#98a1b3" stroke-width="2.2" stroke-linecap="round"><path d="M9 4l6 3-1.5 5.5 4 3-9 6 1-7-4-3z"></path></svg>
@@ -4118,10 +4139,10 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
         <div data-ping-card="1" style="flex: none; background: #ffffff; border-radius: 20px; box-shadow: 0 6px 18px rgba(30,45,85,0.08); overflow: hidden; display: flex; flex-direction: column;">
           <span data-ping-row="1" data-cat="личные" data-name="Арина Смирнова" data-thread="arina" data-prev="Да, классная идея" style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; cursor: pointer; transition: background 200ms ease;">
-            <span style="flex: none; width: 46px; height: 46px; border-radius: 50%; overflow: hidden; background: linear-gradient(160deg, #ffd0dc, #ff9fba); display: flex; align-items: center; justify-content: center; font-family: Nunito, system-ui, sans-serif; font-weight: 800; font-size: 16.5px; letter-spacing: -0.2px; color: #8e2247;">АС</span>
+            <span style="flex: none; width: 46px; height: 46px; border-radius: 50%; overflow: hidden; background: linear-gradient(160deg, #ffd0dc, #ff9fba); display: flex; align-items: center; justify-content: center; font-family: Nunito, system-ui, sans-serif; font-weight: 800; font-size: 16.5px; letter-spacing: -0.2px; color: #8e2247;"><img src="assets/avatars/arina.png" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit;">АС<span data-online-dot="1" style="position:absolute;right:-1px;bottom:-1px;width:13px;height:13px;border-radius:50%;background:linear-gradient(180deg,#5ede8a,#2fbf68);box-shadow:0 0 0 2.5px #ffffff, 0 1px 3px rgba(30,120,60,0.3);"></span></span>
             <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px;">
               <span style="font-size: 15.5px; font-weight: 700; color: #101828; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Арина Смирнова</span>
-              <span style="font-size: 13.5px; color: #7b8698; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Да, классная идея 🔥</span>
+              <span style="font-size: 13.5px; color: #7b8698; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #46536b; font-weight: 600;">Да, классная идея 🔥</span>
             </span>
             <span style="flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
               <span style="font-size: 12px; color: #98a1b3;">14:08</span>
@@ -4131,10 +4152,10 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
           <span style="height: 1px; margin-left: 72px; background: rgba(16,24,40,0.06);"></span>
 
           <span data-ping-row="1" data-cat="личные" data-name="Дмитрий Коваленко" data-thread="dmitry" data-prev="Отлично! Созвонимся в 16:00" style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; cursor: pointer; transition: background 200ms ease;">
-            <span style="flex: none; width: 46px; height: 46px; border-radius: 50%; overflow: hidden; background: linear-gradient(160deg, #cfe2ff, #93b8f5); display: flex; align-items: center; justify-content: center; font-family: Nunito, system-ui, sans-serif; font-weight: 800; font-size: 16.5px; letter-spacing: -0.2px; color: #1f4a94;">ДК</span>
+            <span style="flex: none; width: 46px; height: 46px; border-radius: 50%; overflow: hidden; background: linear-gradient(160deg, #cfe2ff, #93b8f5); display: flex; align-items: center; justify-content: center; font-family: Nunito, system-ui, sans-serif; font-weight: 800; font-size: 16.5px; letter-spacing: -0.2px; color: #1f4a94;"><img src="assets/avatars/dmitry.png" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit;">ДК<span data-online-dot="1" style="position:absolute;right:-1px;bottom:-1px;width:13px;height:13px;border-radius:50%;background:linear-gradient(180deg,#5ede8a,#2fbf68);box-shadow:0 0 0 2.5px #ffffff, 0 1px 3px rgba(30,120,60,0.3);"></span></span>
             <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px;">
               <span style="font-size: 15.5px; font-weight: 700; color: #101828; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Дмитрий Коваленко</span>
-              <span style="font-size: 13.5px; color: #7b8698; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Отлично! Созвонимся в 16:00</span>
+              <span style="font-size: 13.5px; color: #7b8698; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #46536b; font-weight: 600;">Отлично! Созвонимся в 16:00</span>
             </span>
             <span style="flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
               <span style="font-size: 12px; color: #98a1b3;">13:30</span>
@@ -4144,7 +4165,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
           <span style="height: 1px; margin-left: 72px; background: rgba(16,24,40,0.06);"></span>
 
           <span data-ping-row="1" data-cat="бизнес" data-name="Команда iO" data-thread="team" data-prev="Катя: Новый макет готов" style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; cursor: pointer; transition: background 200ms ease;">
-            <span style="flex: none; width: 46px; height: 46px; border-radius: 15px; overflow: hidden; background: linear-gradient(160deg, #e3ebfb, #cbd8f2); display: flex; align-items: center; justify-content: center; font-family: Nunito, system-ui, sans-serif; font-weight: 800; font-size: 16px; letter-spacing: -0.3px; color: #46577a;">iO</span>
+            <span style="flex: none; width: 46px; height: 46px; border-radius: 15px; overflow: hidden; background: linear-gradient(160deg, #e3ebfb, #cbd8f2); display: flex; align-items: center; justify-content: center; font-family: Nunito, system-ui, sans-serif; font-weight: 800; font-size: 16px; letter-spacing: -0.3px; color: #46577a;"><img src="assets/avatars/io.png" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit;">iO</span>
             <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px;">
               <span style="font-size: 15.5px; font-weight: 700; color: #101828; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Команда iO</span>
               <span style="font-size: 13.5px; color: #7b8698; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Катя: Новый макет готов</span>
@@ -4156,7 +4177,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
           <span style="height: 1px; margin-left: 72px; background: rgba(16,24,40,0.06);"></span>
 
           <span data-ping-row="1" data-cat="личные" data-name="План поездки в Карпаты" data-thread="carp" data-prev="Маршрут на 3 дня готов" style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; cursor: pointer; transition: background 200ms ease;">
-            <span style="flex: none; width: 46px; height: 46px; border-radius: 15px; overflow: hidden; background: linear-gradient(160deg, #cdf0dc, #96dcb5); display: flex; align-items: center; justify-content: center; font-family: Nunito, system-ui, sans-serif; font-weight: 800; font-size: 16.5px; color: #14603c;">КП</span>
+            <span style="flex: none; width: 46px; height: 46px; border-radius: 15px; overflow: hidden; background: linear-gradient(160deg, #cdf0dc, #96dcb5); display: flex; align-items: center; justify-content: center; font-family: Nunito, system-ui, sans-serif; font-weight: 800; font-size: 16.5px; color: #14603c;"><img src="assets/avatars/karpaty.png" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit;">КП</span>
             <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px;">
               <span style="font-size: 15.5px; font-weight: 700; color: #101828; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">План поездки в Карпаты</span>
               <span style="font-size: 13.5px; color: #7b8698; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Маршрут на 3 дня готов</span>
@@ -4168,7 +4189,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
           <span style="height: 1px; margin-left: 72px; background: rgba(16,24,40,0.06);"></span>
 
           <span data-ping-row="1" data-cat="каналы" data-name="iO — новости" data-thread="channel" data-prev="Обновление: новые функции" style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; cursor: pointer; transition: background 200ms ease;">
-            <span style="flex: none; width: 46px; height: 46px; border-radius: 50%; overflow: hidden; background: linear-gradient(160deg, #dbe6fb, #c3d3f0); display: flex; align-items: center; justify-content: center; font-family: Nunito, system-ui, sans-serif; font-weight: 800; font-size: 16px; letter-spacing: -0.3px; color: #3a7ef7;">iO</span>
+            <span style="flex: none; width: 46px; height: 46px; border-radius: 50%; overflow: hidden; background: linear-gradient(160deg, #dbe6fb, #c3d3f0); display: flex; align-items: center; justify-content: center; font-family: Nunito, system-ui, sans-serif; font-weight: 800; font-size: 16px; letter-spacing: -0.3px; color: #3a7ef7;"><img src="assets/avatars/spark.png" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit;">iO</span>
             <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px;">
               <span style="display: flex; align-items: center; gap: 5px;">
                 <span style="font-size: 15.5px; font-weight: 700; color: #101828; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">iO — новости</span>
@@ -4183,7 +4204,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
           <span style="height: 1px; margin-left: 72px; background: rgba(16,24,40,0.06);"></span>
 
           <span data-ping-row="1" data-cat="бизнес" data-name="Маркетинг" data-thread="mark" data-prev="Саша: Запустили A/B тест" style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; cursor: pointer; transition: background 200ms ease;">
-            <span style="flex: none; width: 46px; height: 46px; border-radius: 15px; overflow: hidden; background: linear-gradient(160deg, #ffe1d6, #ffc9b6); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px; color: #b4532e;">М</span>
+            <span style="flex: none; width: 46px; height: 46px; border-radius: 15px; overflow: hidden; background: linear-gradient(160deg, #ffe1d6, #ffc9b6); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px; color: #b4532e;"><img src="assets/avatars/marketing.png" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit;">М</span>
             <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px;">
               <span style="font-size: 15.5px; font-weight: 700; color: #101828; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Маркетинг</span>
               <span style="font-size: 13.5px; color: #7b8698; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Саша: Запустили A/B тест</span>
@@ -4223,8 +4244,8 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
         <span data-ping-empty="1" style="display: none; padding: 26px 8px; text-align: center; font-size: 14px; color: #98a1b3;">Ничего не найдено</span>
       </div>
 
-      <span data-ping-fab="1" style="position: absolute; right: 18px; bottom: calc(168px + var(--sab, 0px)); width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(180deg, #4d8bfa 0%, #2f6fe8 100%); box-shadow: 0 10px 22px rgba(47,111,232,0.38); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 220ms cubic-bezier(.22,1,.36,1);">
-        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4.5-1.2L19 8.3a2 2 0 0 0 0-2.8l-.5-.5a2 2 0 0 0-2.8 0L5.2 15.5z"></path></svg>
+      <span data-ping-fab="1" style="position: absolute; right: 18px; bottom: calc(168px + var(--sab, 0px)); width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(162deg, rgba(255,255,255,0.72) 0%, rgba(224,236,255,0.44) 55%, rgba(205,224,255,0.5) 100%); backdrop-filter: blur(18px) saturate(160%); -webkit-backdrop-filter: blur(18px) saturate(160%); box-shadow: inset 0 1.5px 1px rgba(255,255,255,0.95), inset 0 -2px 6px rgba(120,150,210,0.22), inset 0 0 0 0.6px rgba(255,255,255,0.6), 0 0 0 0.5px rgba(120,140,180,0.28), 0 10px 24px rgba(30,50,90,0.18); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 220ms cubic-bezier(.22,1,.36,1);"><span style="position:absolute;inset:-3px;border-radius:50%;padding:2px;pointer-events:none;-webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);mask-composite:exclude;overflow:hidden;"><span style="position:absolute;left:50%;top:50%;width:230%;aspect-ratio:1/1;margin:-115% 0 0 -115%;background:conic-gradient(from 0deg, transparent 0deg, transparent 295deg, rgba(77,139,250,0.95) 320deg, rgba(139,92,255,0.95) 340deg, rgba(255,109,179,0.9) 351deg, transparent 360deg);animation:liveEdgeGlint 2400ms linear infinite;"></span></span><span style="position:absolute;left:50%;top:50%;width:100%;height:100%;border-radius:50%;border:1.5px solid rgba(77,139,250,0.5);transform:translate(-50%,-50%) scale(0.9);opacity:0;animation:ioBreathRing 3.6s ease-out 1.2s infinite backwards;pointer-events:none;"></span>
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#2f7cf6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4.5-1.2L19 8.3a2 2 0 0 0 0-2.8l-.5-.5a2 2 0 0 0-2.8 0L5.2 15.5z"></path></svg>
       </span>
 
       <div data-ping-inputbar="1" style="position: absolute; left: 14px; right: 14px; bottom: calc(102px + var(--sab, 0px)); height: 58px; border-radius: 22px; background: linear-gradient(172deg, rgba(255,255,255,0.92) 0%, rgba(238,244,255,0.66) 100%); backdrop-filter: blur(18px) saturate(150%); -webkit-backdrop-filter: blur(18px) saturate(150%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.95), inset 0 -1px 2px rgba(120,150,210,0.14), inset 0 0 0 0.6px rgba(255,255,255,0.55), 0 0 0 0.5px rgba(120,140,180,0.24), 0 2px 6px rgba(30,50,90,0.07), 0 12px 28px rgba(30,50,90,0.14); display: flex; align-items: center; justify-content: space-around; padding: 0 6px; box-sizing: border-box;">
@@ -4245,8 +4266,12 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
           <span style="font-size: 10.5px; font-weight: 600;">Ещё</span>
         </span>
       </div>
-      <div data-ping-thread="1" data-screen-label="ПИНГ — переписка" style="position: absolute; inset: 0; z-index: 6; display: flex; flex-direction: column; background: #eff5ff; transform: translateX(100%); transition: transform 420ms cubic-bezier(.32,.72,0,1); will-change: transform;">
-        <div style="flex: none; padding: 56px 14px 10px; display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.82); backdrop-filter: blur(18px) saturate(140%); -webkit-backdrop-filter: blur(18px) saturate(140%); box-shadow: 0 4px 16px rgba(30,45,85,0.07);">
+      <div data-ping-thread="1" data-screen-label="ПИНГ — переписка" style="position: absolute; inset: 0; z-index: 6; display: flex; flex-direction: column; background: linear-gradient(180deg, #f3f7ff 0%, #e9f0fc 100%); transform: translateX(100%); transition: transform 420ms cubic-bezier(.32,.72,0,1); will-change: transform;">
+        <span data-ping-aura="1" style="position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;">
+          <span style="position: absolute; right: -18%; top: -6%; width: 70%; height: 42%; border-radius: 50%; background: radial-gradient(50% 50% at 50% 50%, rgba(77,139,250,0.16), transparent 72%); filter: blur(30px); animation: auraDrift 15s ease-in-out infinite;"></span>
+          <span style="position: absolute; left: -20%; bottom: 10%; width: 66%; height: 40%; border-radius: 50%; background: radial-gradient(50% 50% at 50% 50%, rgba(139,92,255,0.12), transparent 74%); filter: blur(32px); animation: auraDrift 19s ease-in-out 3s infinite;"></span>
+        </span>
+        <div style="flex: none; padding: 56px 14px 10px; display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.82); backdrop-filter: blur(18px) saturate(140%); -webkit-backdrop-filter: blur(18px) saturate(140%); box-shadow: inset 0 -1px 0 rgba(120,150,210,0.14), 0 6px 20px rgba(30,45,85,0.08);">
           <span data-ping-back="1" style="flex: none; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 200ms ease;">
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#3a7ef7" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5L8 12l6.5 7"></path></svg>
           </span>
@@ -4266,7 +4291,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
         </div>
 
         <div data-ping-msgs="1" style="flex: 1; min-height: 0; overflow-y: auto; padding: 14px 14px 20px; display: flex; flex-direction: column; gap: 8px; scrollbar-width: none;">
-          <span style="align-self: center; padding: 4px 12px; border-radius: 12px; background: rgba(16,24,40,0.06); font-size: 11.5px; font-weight: 700; letter-spacing: 0.2px; color: #7b8698;">Сегодня</span>
+          <span style="align-self: center; padding: 4px 12px; border-radius: 12px; background: rgba(255,255,255,0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: inset 0 0 0 0.5px rgba(255,255,255,0.7), 0 1px 4px rgba(30,50,90,0.08); font-size: 11.5px; font-weight: 700; letter-spacing: 0.2px; color: #6b7690;">Сегодня</span>
 
           <span style="align-self: flex-start; max-width: 78%; padding: 9px 13px; border-radius: 18px 18px 18px 6px; background: #ffffff; box-shadow: 0 3px 10px rgba(30,45,85,0.07); font-size: 15px; line-height: 1.35; color: #101828;">Привет! Посмотрела макет списка чатов — выглядит чисто<span style="display: block; margin-top: 3px; font-size: 11px; color: #98a1b3;">13:52</span></span>
 
@@ -5324,7 +5349,7 @@ class Component extends DCLogic {
       ]
     };
     const bubble = (m) => {
-      if (m[0] === 'd') return '<span style="align-self: center; padding: 4px 12px; border-radius: 12px; background: rgba(16,24,40,0.06); font-size: 11.5px; font-weight: 700; letter-spacing: 0.2px; color: #7b8698;">' + m[1] + '</span>';
+      if (m[0] === 'd') return '<span style="align-self: center; padding: 4px 12px; border-radius: 12px; background: rgba(255,255,255,0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: inset 0 0 0 0.5px rgba(255,255,255,0.7), 0 1px 4px rgba(30,50,90,0.08); font-size: 11.5px; font-weight: 700; letter-spacing: 0.2px; color: #6b7690;">' + m[1] + '</span>';
       const me = m[0] === 'out';
       const esc = String(m[1]).replace(/&/g, '&amp;').replace(/</g, '&lt;');
       const meta = me
@@ -5911,7 +5936,7 @@ class Component extends DCLogic {
     // У сегментов дока transform занят морфами — жмём внутренний визуал (иконку),
     // у простых круглых кнопок transform свободен — жмём сам элемент.
     const PRESS_INNER = '[data-left-btn],[data-close-app],[data-shop-btn],[data-mid-sliders],[data-news-icon],[data-meta-icon]';
-    const PRESS_SELF = '[data-lb-x],[data-lb-mic],[data-scan-x],[data-agent-x],[data-ping-search-btn],[data-ping-new],[data-ping-play],[data-tr-plus],[data-tr-send],[data-ans-x]';
+    const PRESS_SELF = '[data-ping-fab],[data-lb-x],[data-lb-mic],[data-scan-x],[data-agent-x],[data-ping-search-btn],[data-ping-new],[data-ping-play],[data-tr-plus],[data-tr-send],[data-ans-x]';
     let pressFxEl = null;
     document.addEventListener('pointerdown', (e) => {
       const hostI = e.target.closest(PRESS_INNER);
@@ -7144,7 +7169,20 @@ class Component extends DCLogic {
       // флаг сразу: отмена в первые 200мс должна работать, а не молча проглатываться
       recordingOn = true;
       const shRec = q('[data-app-shell]');
-      if ((!shRec || shRec.style.display === 'none') && window.__ioDockMode) window.__ioDockMode(false);
+      const fromHome = !shRec || shRec.style.display === 'none';
+      // домашние позиции боковых сегментов снимаем ДО морфа: geo() мгновенно меняет
+      // gap/padding подложки, и после него лэйаут уже сдвинут
+      const flyFree = [];
+      if (fromHome) {
+        const wrapF0 = q('[data-track-wrap]');
+        if (wrapF0) wrapF0.querySelectorAll('[data-seg]').forEach((sg) => {
+          if (sg.hasAttribute('data-mid-plate')) return;
+          const btn = sg.querySelector('[data-menu-btn]');
+          flyFree.push([sg, sg.offsetLeft, sg.offsetTop, sg.offsetWidth, sg.offsetHeight,
+            btn, btn ? btn.offsetWidth : 0, btn ? btn.offsetHeight : 0]);
+        });
+      }
+      if (fromHome && window.__ioDockMode) window.__ioDockMode(false);
       const hp0 = q('[data-home-plate]');
       if (hp0) { hp0.__recHidden = 1; hp0.style.opacity = '0'; }
       knob.style.transition = 'none';
@@ -7156,6 +7194,73 @@ class Component extends DCLogic {
       pillWrapEl.style.animation = 'pillPop 520ms cubic-bezier(.22,1,.36,1)';
       if (this.pulses) this.pulses.style.opacity = '0';
       expand(true);
+      // при входе в запись С РАБОЧЕГО СТОЛА морф __ioDockMode(false) и expand(true)
+      // кроссфейдят содержимое кнопок дока (иконка приложения -> ползунки/стрелка/крестик)
+      // прямо под разлётом, и на долю секунды видны элементы «меню приложения».
+      // Замораживаем домашний вид кнопок на время полёта (после expand — его записи
+      // в этом же кадре перекрываются), app-вид досинхронизируем, когда всё уже скрыто.
+      if (fromHome) {
+        const wrapF = q('[data-track-wrap]');
+        const frozen = wrapF ? Array.from(wrapF.querySelectorAll('[data-menu-btn]')) : [];
+        const freeze = (toHome) => frozen.forEach((btn) => {
+          const img = btn.querySelector('[data-home-app]');
+          if (!img) return;
+          // «пружинка» морфа (pop scale 1.1) дёргает кнопку в начале полёта — гасим
+          if (toHome && btn.getAnimations) btn.getAnimations().forEach((an) => { if (an.__m3) an.cancel(); });
+          if (img.__hideT) { clearTimeout(img.__hideT); img.__hideT = null; }
+          img.__gen = (img.__gen || 0) + 1;
+          img.style.transition = 'none';
+          img.style.display = toHome ? '' : 'none';
+          img.style.opacity = toHome ? '1' : '0';
+          Array.from(btn.children).forEach((ch) => {
+            if (ch === img) return;
+            if (ch.__css == null) ch.__css = ch.getAttribute('style') || '';
+            ch.setAttribute('style', ch.__css + ';transition:none;' + (toHome ? 'opacity:0;' : ''));
+          });
+        });
+        freeze(true);
+        // боковые сегменты — из потока на их домашних местах: иначе морф ширин
+        // (gap/padding подложки, схлопывание соседей) тянет их по лэйауту ПРОТИВ
+        // transform-полёта, и иконки «бьются об стенку» посреди разлёта
+        flyFree.forEach((f) => {
+          const [sg, l, t, w, h, btn, bw, bh] = f;
+          // запоминаем app-значения (их только что расставили geo/expand), чтобы вернуть
+          // при рассинхронизации: сброс в '' стёр бы инлайн-ширину кнопки насовсем —
+          // единственный источник её размера, img раздул бы кнопку до натуральной величины
+          f.prev = {segTr: sg.style.transition, w: btn ? btn.style.width : '', h: btn ? btn.style.height : '', m: btn ? btn.style.margin : ''};
+          // width заморожен — из transition его убираем, иначе промежуточный style-резолв
+          // морфа (52px) даёт видимую до-анимацию ширины 52 -> 44 в начале полёта
+          sg.style.transition = 'transform 520ms cubic-bezier(.5,0,.3,1), opacity 380ms ease';
+          sg.style.position = 'absolute';
+          sg.style.left = l + 'px';
+          sg.style.top = t + 'px';
+          sg.style.width = w + 'px';
+          sg.style.height = h + 'px';
+          sg.style.margin = '0';
+          sg.style.padding = '0';
+          // кнопка внутри тоже держит домашнюю геометрию — geo() сжал/сдвинул бы её мгновенно
+          if (btn) { btn.style.width = bw + 'px'; btn.style.height = bh + 'px'; btn.style.margin = '0'; }
+        });
+        setTimeout(() => {
+          // кнопки уже улетели/схлопнуты — переводим контент в app-вид без анимации;
+          // если за это время вернулись на дом, homeIcons(true) всё переписал сам
+          if (window.__ioDockState) return;
+          freeze(false);
+          flyFree.forEach((f) => {
+            const [sg, l, t, w, h, btn] = f;
+            const prev = f.prev || {segTr: '', w: '', h: '', m: ''};
+            sg.style.position = '';
+            sg.style.left = '';
+            sg.style.top = '';
+            sg.style.height = '';
+            sg.style.margin = '';
+            sg.style.padding = '';
+            sg.style.transition = prev.segTr;
+            sg.style.width = '0px'; // app-вид записи: сегменты схлопнуты, как ставил expand(true)
+            if (btn) { btn.style.width = prev.w; btn.style.height = prev.h; btn.style.margin = prev.m; }
+          });
+        }, 560);
+      }
       setTimeout(() => {
         if (!recordingOn) return; // запись отменили в окне 200мс — капсулу не достраиваем
         knob.style.visibility = 'hidden';
