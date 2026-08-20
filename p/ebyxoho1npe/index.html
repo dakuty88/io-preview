@@ -5513,6 +5513,8 @@ class Component extends DCLogic {
           if (dx > 16 && Math.abs(dx) > Math.abs(dy) * 1.4) {
             sbDrag = true;
             thread.style.transition = 'none';
+            // скругление должно резать и контент (шапку, композер), не только фон
+            thread.style.overflow = 'hidden';
             try { thread.setPointerCapture(sbId); } catch (err) {}
           } else if (Math.abs(dy) > 14 || dx < -16) { sbId = null; return; }
           else return;
@@ -5525,7 +5527,7 @@ class Component extends DCLogic {
         // контур листа, как у карточки iO-чата: скругление и тень слева
         const cp = Math.min(1, dpx / (sbW * 0.2));
         thread.style.borderRadius = (cp * 30).toFixed(1) + 'px';
-        thread.style.boxShadow = '-14px 0 34px rgba(20,35,80,' + (cp * 0.2).toFixed(3) + '), -1px 0 0 rgba(255,255,255,' + (cp * 0.55).toFixed(2) + ')';
+        thread.style.boxShadow = '-18px 0 40px rgba(20,35,80,' + (cp * 0.3).toFixed(3) + '), 0 0 0 ' + (cp * 1).toFixed(1) + 'px rgba(255,255,255,' + (cp * 0.7).toFixed(2) + ')';
       });
       const sbEnd = (e) => {
         if (e.pointerId !== sbId) return;
@@ -5538,12 +5540,12 @@ class Component extends DCLogic {
           thread.style.transform = 'translateX(100%)';
           if (window.__ioHaptic) window.__ioHaptic('light');
           // контур снимаем после отъезда — тред скрыт, следующий вход чистый
-          setTimeout(() => { thread.style.borderRadius = ''; thread.style.boxShadow = ''; }, 460);
+          setTimeout(() => { thread.style.borderRadius = ''; thread.style.boxShadow = ''; thread.style.overflow = ''; }, 460);
         } else {
           thread.style.transform = 'translateX(0)';
           thread.style.borderRadius = '0px';
           thread.style.boxShadow = 'none';
-          setTimeout(() => { thread.style.borderRadius = ''; thread.style.boxShadow = ''; }, 400);
+          setTimeout(() => { thread.style.borderRadius = ''; thread.style.boxShadow = ''; thread.style.overflow = ''; }, 400);
         }
       };
       thread.addEventListener('pointerup', sbEnd);
