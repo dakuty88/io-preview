@@ -8110,23 +8110,62 @@ class Component extends DCLogic {
           if (card.__prevOrigin != null) { card.style.transformOrigin = card.__prevOrigin; card.__prevOrigin = null; }
         }, 480);
       };
-      // жест шторки: свайп вправо по чату открывает историю, влево — закрывает
+      // жест шторки: карточка чата ЖИВЁТ под пальцем — открытие и закрытие
+      // ведутся драгом (как в iOS), коммит на 42% пути или флике
       if (card && !card.__swipeSide) {
         card.__swipeSide = 1;
-        let ssx = null, ssy = null;
+        const OPEN_TF = (pr) => 'translateX(' + (pr * 76).toFixed(2) + '%) translateY(' + (-3 * pr).toFixed(2) + '%) scale(' + (1 - 0.19 * pr).toFixed(3) + ')';
+        let ssx = null, ssy = null, ssDrag = false, ssOpening = true, ssW = 1, ssPrevX = 0, ssPrevT = 0, ssVx = 0;
         card.addEventListener('pointerdown', (e) => {
           // не перехватываем жесты с поля ввода и композера
           if (e.target.closest('[data-chat-inbar], input, [contenteditable]')) { ssx = null; return; }
-          ssx = e.clientX; ssy = e.clientY;
+          ssx = e.clientX; ssy = e.clientY; ssDrag = false;
+          ssW = card.getBoundingClientRect().width || 1;
+          ssPrevX = e.clientX; ssPrevT = performance.now(); ssVx = 0;
         });
-        card.addEventListener('pointerup', (e) => {
+        card.addEventListener('pointermove', (e) => {
           if (ssx == null) return;
           const dx = e.clientX - ssx, dy = e.clientY - ssy;
-          ssx = null;
-          if (Math.abs(dx) < 56 || Math.abs(dx) < Math.abs(dy) * 1.4) return; // не горизонтальный жест
-          if (dx > 0 && !sideEl && menuBtn) menuBtn.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-          else if (dx < 0 && sideEl) closeSide();
+          if (!ssDrag) {
+            if (Math.abs(dx) > 14 && Math.abs(dx) > Math.abs(dy) * 1.4) {
+              if (dx > 0 && !sideEl) {
+                // строим шторку сразу — карта дальше ведётся пальцем поверх
+                ssOpening = true;
+                if (menuBtn) menuBtn.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+              } else if (dx < 0 && sideEl) {
+                ssOpening = false;
+              } else { ssx = null; return; }
+              ssDrag = true;
+              card.style.animation = 'none';
+              card.style.transition = 'none';
+              try { card.setPointerCapture(e.pointerId); } catch (err) {}
+            } else if (Math.abs(dy) > 12) { ssx = null; return; }
+            else return;
+          }
+          const now = performance.now(), dt = now - ssPrevT;
+          if (dt > 0) { ssVx = ssVx * 0.7 + ((e.clientX - ssPrevX) / dt) * 0.3; ssPrevX = e.clientX; ssPrevT = now; }
+          const pr = Math.max(0, Math.min(1, (ssOpening ? 0 : 1) + dx / (ssW * 0.76)));
+          card.style.transform = OPEN_TF(pr);
+          card.style.borderRadius = (pr * 34).toFixed(1) + 'px';
         });
+        const ssEnd = (e) => {
+          if (ssx == null) return;
+          const dx = e.clientX - ssx;
+          ssx = null;
+          if (!ssDrag) return;
+          ssDrag = false;
+          const pr = Math.max(0, Math.min(1, (ssOpening ? 0 : 1) + dx / (ssW * 0.76)));
+          card.style.transition = 'transform 460ms cubic-bezier(.22,1,.36,1), border-radius 420ms cubic-bezier(.22,1,.36,1), box-shadow 420ms ease';
+          if ((pr > 0.42 && ssVx > -0.45) || ssVx > 0.5) {
+            card.style.transform = 'translateX(76%) translateY(-3%) scale(0.81)';
+            card.style.borderRadius = '34px';
+            if (sideEl) { const s2 = sideEl; setTimeout(() => { if (sideEl === s2) card.style.animation = 'peekOutline 3.2s ease-in-out infinite'; }, 480); }
+          } else {
+            closeSide();
+          }
+        };
+        card.addEventListener('pointerup', ssEnd);
+        card.addEventListener('pointercancel', ssEnd);
       }
       if (menuBtn) menuBtn.addEventListener('click', () => {
         if (sideEl) { closeSide(); return; }
@@ -8262,15 +8301,39 @@ class Component extends DCLogic {
           if (hit) openHist(hit[1]);
           closeSide();
         }));
-        // свайп справа налево — вернуться в чат (только горизонтальный жест)
-        let swX = null, swY = null;
-        s.addEventListener('pointerdown', (e2) => { swX = e2.clientX; swY = e2.clientY; });
+        // свайп влево по панели: карта чата едет за пальцем, коммит по порогу/флику
+        let swX = null, swY = null, swDrag = false, swW = 1, swPX = 0, swPT = 0, swVx = 0;
+        s.addEventListener('pointerdown', (e2) => { swX = e2.clientX; swY = e2.clientY; swDrag = false; swW = card.getBoundingClientRect().width || 1; swPX = e2.clientX; swPT = performance.now(); swVx = 0; });
         s.addEventListener('pointermove', (e2) => {
           if (swX === null) return;
           const dx2 = e2.clientX - swX, dy2 = e2.clientY - swY;
-          if (dx2 < -42 && Math.abs(dx2) > Math.abs(dy2) * 1.5) { swX = null; closeSide(); }
+          if (!swDrag) {
+            if (dx2 < -14 && Math.abs(dx2) > Math.abs(dy2) * 1.5) {
+              swDrag = true;
+              card.style.animation = 'none';
+              card.style.transition = 'none';
+            } else if (Math.abs(dy2) > 12) { swX = null; return; }
+            else return;
+          }
+          const now2 = performance.now(), dt2 = now2 - swPT;
+          if (dt2 > 0) { swVx = swVx * 0.7 + ((e2.clientX - swPX) / dt2) * 0.3; swPX = e2.clientX; swPT = now2; }
+          const pr2 = Math.max(0, Math.min(1, 1 + dx2 / (swW * 0.76)));
+          card.style.transform = 'translateX(' + (pr2 * 76).toFixed(2) + '%) translateY(' + (-3 * pr2).toFixed(2) + '%) scale(' + (1 - 0.19 * pr2).toFixed(3) + ')';
+          card.style.borderRadius = (pr2 * 34).toFixed(1) + 'px';
         });
-        s.addEventListener('pointerup', () => { swX = null; });
+        const swEnd = (e2) => {
+          if (swX === null) return;
+          const dx2 = e2.clientX - swX;
+          swX = null;
+          if (!swDrag) return;
+          swDrag = false;
+          const pr2 = Math.max(0, Math.min(1, 1 + dx2 / (swW * 0.76)));
+          card.style.transition = 'transform 460ms cubic-bezier(.22,1,.36,1), border-radius 420ms cubic-bezier(.22,1,.36,1)';
+          if (pr2 < 0.58 || swVx < -0.5) closeSide();
+          else { card.style.transform = 'translateX(76%) translateY(-3%) scale(0.81)'; card.style.borderRadius = '34px'; }
+        };
+        s.addEventListener('pointerup', swEnd);
+        s.addEventListener('pointercancel', swEnd);
         // скролл списка: протяжка любым указателем с ЛЮБОГО места панели + колесо
         const listEl = s.querySelector('[data-side-list]');
         if (listEl) {
