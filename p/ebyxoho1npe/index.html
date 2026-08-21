@@ -6220,25 +6220,88 @@ class Component extends DCLogic {
           });
         });
         if (window.__ioHaptic) window.__ioHaptic('light');
-        // выбор пункта НЕ закрывает окно: подсветка выбора + хаптик; для
-        // размера шрифта — стойкое выделение выбранной половины.
+        // корень контента, на который действуют настройки: чат iO или панель
+        // активного приложения
+        const setRoot = () => {
+          const chatOn2 = document.querySelector('[data-chat-card]:not([data-closing])');
+          if (chatOn2) return chatOn2;
+          const cur2 = window.__ioActiveApp;
+          return (cur2 && APPS[cur2]) ? document.querySelector(APPS[cur2].pane) : null;
+        };
+        // РАЗМЕР ШРИФТА — функциональный: zoom контента (s 0.92 / l 1.12),
+        // повторный тап по выбранному — сброс к 1
+        const applyFont = (which) => {
+          const root2 = setRoot();
+          if (!root2) return;
+          const target = which === 's' ? 0.92 : 1.12;
+          const same = Math.abs((parseFloat(root2.style.zoom) || 1) - target) < 0.01;
+          root2.style.zoom = same ? '' : String(target);
+          setEl.querySelectorAll('[data-font-a]').forEach((f2) => { f2.style.background = ''; });
+          if (!same) {
+            const el2 = setEl.querySelector('[data-font-a="' + which + '"]');
+            if (el2) el2.style.background = 'rgba(58,126,247,0.18)';
+          }
+        };
+        // ПЕРЕВОД — функциональный: двунаправленный словарь по видимым текстам
+        const TR_PAIRS = [
+          ['Breaking News', 'Главные новости'],
+          ['Top Stories', 'Главное'],
+          ['More News', 'Ещё новости'],
+          ['Monday, 27 May', 'Понедельник, 27 мая'],
+          ['Notre-Dame: Massive fire ravages Paris cathedral', 'Нотр-Дам: сильнейший пожар в парижском соборе'],
+          ['Trade talks resume as markets steady worldwide', 'Торговые переговоры возобновлены, рынки стабильны'],
+          ['One million species at risk of extinction, UN report warns', 'Миллион видов под угрозой вымирания — доклад ООН'],
+          ['iOS 13: Everything you need to know about the new iPhone software', 'iOS 13: всё о новой системе iPhone'],
+          ['In Greenland, ice sheet melt reaches record pace this spring', 'В Гренландии таяние льдов бьёт рекорды этой весной'],
+          ['Starship completes first fully reusable orbital flight', 'Starship совершил первый полностью многоразовый полёт'],
+          ['Champions League final: what we learned from a dramatic night', 'Финал Лиги чемпионов: итоги драматичной ночи'],
+          ['AI assistants are quietly rewriting how we shop online', 'ИИ-ассистенты незаметно меняют онлайн-покупки'],
+          ['Метамаркет', 'Metamarket'],
+          ['Скоро здесь откроется магазин', 'The store opens here soon'],
+          ['Академия', 'Academy'],
+          ['Чем займёмся?', 'What shall we do?']
+        ];
+        const TRMAP = new Map();
+        TR_PAIRS.forEach(([a, b]) => { TRMAP.set(a, b); TRMAP.set(b, a); });
+        const translateNow = () => {
+          const root2 = setRoot();
+          if (!root2) return 0;
+          const walker = document.createTreeWalker(root2, NodeFilter.SHOW_TEXT);
+          let n2, count = 0;
+          while ((n2 = walker.nextNode())) {
+            const t2 = n2.textContent.trim();
+            if (t2 && TRMAP.has(t2)) { n2.textContent = n2.textContent.replace(t2, TRMAP.get(t2)); count++; }
+          }
+          // язык-метка тумблерится
+          const lbl = setEl.querySelector('[data-set-i="translate"] span:last-child');
+          if (lbl && count) lbl.textContent = lbl.textContent === 'RU' ? 'EN' : 'RU';
+          return count;
+        };
+        // выбор пункта НЕ закрывает окно; шрифт и перевод — рабочие.
         // Закрытие только тапом вне окна или повторным тапом по кнопке
         setEl.addEventListener('click', (e2) => {
           const fa = e2.target.closest('[data-font-a]');
           if (fa) {
             e2.stopPropagation();
-            setEl.querySelectorAll('[data-font-a]').forEach((f2) => { f2.style.background = ''; });
-            fa.style.background = 'rgba(58,126,247,0.18)';
+            applyFont(fa.getAttribute('data-font-a'));
             if (window.__ioHaptic) window.__ioHaptic('light');
             return;
           }
           const it = e2.target.closest('[data-set-i]');
           if (!it) return;
           e2.stopPropagation();
+          if (it.getAttribute('data-set-i') === 'translate') translateNow();
           it.style.background = 'rgba(58,126,247,0.14)';
           if (window.__ioHaptic) window.__ioHaptic('light');
           setTimeout(() => { if (setEl) it.style.background = ''; }, 450);
         });
+        // отразить текущий масштаб в сегменте при открытии
+        (() => {
+          const root2 = setRoot();
+          const z = root2 ? (parseFloat(root2.style.zoom) || 1) : 1;
+          if (Math.abs(z - 0.92) < 0.01) { const s2 = setEl.querySelector('[data-font-a="s"]'); if (s2) s2.style.background = 'rgba(58,126,247,0.18)'; }
+          if (Math.abs(z - 1.12) < 0.01) { const l2 = setEl.querySelector('[data-font-a="l"]'); if (l2) l2.style.background = 'rgba(58,126,247,0.18)'; }
+        })();
         const me2 = setEl;
         setTimeout(() => {
           const closer2 = (ev) => {
