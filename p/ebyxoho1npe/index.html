@@ -3598,17 +3598,23 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     0%, 100% { box-shadow: -10px 16px 34px rgba(20,35,80,0.2), 0 0 0 1px rgba(120,175,255,0.3), 0 0 14px rgba(120,175,255,0.15); }
     50% { box-shadow: -10px 16px 34px rgba(20,35,80,0.2), 0 0 0 2px rgba(120,175,255,0.7), 0 0 22px rgba(120,175,255,0.45); }
   }
-  /* премиальный контур соты: блик проходит круг по грани и гаснет до следующего захода.
-     pathLength=300 нормирует длину пути, поэтому дэши не зависят от размера аватарки;
-     гашение обязательно — иначе на паузе дуга «паркуется» видимой меткой у вершины */
-  @keyframes hexSheen {
-    0% { stroke-dashoffset: 300; }
-    55%, 100% { stroke-dashoffset: 0; }
+  /* премиальный ободок соты: сота-подложка на 1.6px больше аватарки, её видно только
+     кромкой — фото сверху перекрывает середину. Свет по кромке водит конический
+     градиент с анимируемым углом (@property), поэтому движение идёт непрерывно */
+  @property --hexA { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+  @keyframes hexSpin { to { --hexA: 360deg; } }
+  [data-hexav-rim], [data-hexav-sheen] { position: absolute; pointer-events: none; }
+  [data-hexav-rim] {
+    background: linear-gradient(145deg, #bccbf8 0%, #cdc0fa 48%, #bccbf8 100%);
+    filter: drop-shadow(0 2px 7px rgba(112,116,240,0.28));
   }
-  @keyframes hexSheenFade {
-    0%, 5% { opacity: 0; }
-    16%, 44% { opacity: 1; }
-    55%, 100% { opacity: 0; }
+  /* акцент насыщенный, а не белый: на белой карточке светлый блик читался бы разрывом контура */
+  [data-hexav-sheen] {
+    background: conic-gradient(from var(--hexA) at 50% 50%,
+      rgba(93,120,240,0) 0deg, rgba(93,120,240,0) 224deg,
+      rgba(93,120,240,0.75) 284deg, rgba(122,92,242,0.98) 316deg,
+      rgba(93,120,240,0.7) 346deg, rgba(93,120,240,0) 360deg);
+    animation: hexSpin 5.5s linear infinite;
   }
   @keyframes chatWave {
     0%, 100% { transform: scaleY(0.35); }
@@ -5641,20 +5647,31 @@ class Component extends DCLogic {
       inner.style.webkitClipPath = 'path("' + hexPath(size) + '")';
       inner.style.clipPath = 'path("' + hexPath(size) + '")';
       while (av.firstChild) inner.appendChild(av.firstChild);
+      const row = av.closest('[data-ping-row]');
+      const premium = (row && row.getAttribute('data-premium')) || av.getAttribute('data-premium');
+      if (premium) {
+        // подложки крупнее аватарки: наружу торчит только кромка, середину закрывает фото
+        const pad = 1.6;
+        const bigPath = 'path("' + hexPath(size + pad * 2) + '")';
+        ['data-hexav-rim', 'data-hexav-sheen'].forEach((attr) => {
+          const layer = document.createElement('span');
+          layer.setAttribute(attr, '1');
+          layer.style.inset = (-pad) + 'px';
+          layer.style.webkitClipPath = bigPath;
+          layer.style.clipPath = bigPath;
+          av.appendChild(layer);
+        });
+      }
       av.appendChild(inner);
       if (dot) av.appendChild(dot);
-      const ring = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-      ring.setAttribute('viewBox', '-1.4 -1.4 102.8 102.8');
-      ring.setAttribute('preserveAspectRatio', 'none');
-      ring.setAttribute('data-hexav-ring', '1');
-      const prem = av.closest('[data-ping-row]');
-      ring.innerHTML = '<path d="' + HEX100 + '" fill="none" stroke="rgba(16,24,40,0.13)" stroke-width="2.2"/>'
-        + ((prem && prem.getAttribute('data-premium')) || av.getAttribute('data-premium')
-          ? '<path d="' + HEX100 + '" fill="none" stroke="rgba(96,124,240,0.45)" stroke-width="2.6"/>'
-            + '<path d="' + HEX100 + '" pathLength="300" fill="none" stroke="rgba(124,111,247,0.28)" stroke-width="6" stroke-linecap="round" stroke-dasharray="42 258" style="animation:hexSheen 6.5s linear infinite, hexSheenFade 6.5s linear infinite;"/>'
-            + '<path d="' + HEX100 + '" pathLength="300" fill="none" stroke="rgba(146,132,255,0.95)" stroke-width="2.6" stroke-linecap="round" stroke-dasharray="20 280" style="animation:hexSheen 6.5s linear infinite, hexSheenFade 6.5s linear infinite;"/>'
-          : '');
-      av.appendChild(ring);
+      if (!premium) {
+        const ring = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        ring.setAttribute('viewBox', '-1.4 -1.4 102.8 102.8');
+        ring.setAttribute('preserveAspectRatio', 'none');
+        ring.setAttribute('data-hexav-ring', '1');
+        ring.innerHTML = '<path d="' + HEX100 + '" fill="none" stroke="rgba(16,24,40,0.13)" stroke-width="2.2"/>';
+        av.appendChild(ring);
+      }
     };
     document.querySelectorAll('[data-ping-row]').forEach((r) => hexify(r.firstElementChild));
     document.querySelectorAll('[data-ping-thread-av]').forEach(hexify);
@@ -5740,12 +5757,19 @@ class Component extends DCLogic {
         tAv.innerHTML = src.innerHTML;
         tAv.style.color = src.style.color;
         // клип-путь приходит в px от строки списка (46px) — пересчитываем под шапку
+        const tSize = parseFloat(tAv.style.width) || 38;
         const tIn = tAv.querySelector('[data-hexav-in]');
         if (tIn) {
-          const p = 'path("' + hexPath(parseFloat(tAv.style.width) || 38) + '")';
+          const p = 'path("' + hexPath(tSize) + '")';
           tIn.style.webkitClipPath = p;
           tIn.style.clipPath = p;
         }
+        tAv.querySelectorAll('[data-hexav-rim], [data-hexav-sheen]').forEach((l) => {
+          const pad = -parseFloat(l.style.inset) || 1.6;
+          const p = 'path("' + hexPath(tSize + pad * 2) + '")';
+          l.style.webkitClipPath = p;
+          l.style.clipPath = p;
+        });
       }
       if (tStatus) {
         const cat = row.getAttribute('data-cat');
