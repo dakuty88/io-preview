@@ -4938,6 +4938,14 @@ class Component extends DCLogic {
           l = Math.max(l, pb.left + 8); t = Math.max(t, pb.top + 8);
           rr = Math.min(rr, pb.right - 8); b = Math.min(b, pb.bottom - 8);
         }
+        // и не должна залезать на нижний слой (док или панель агента): контент под ним
+        // обрезан маской, рамка бы висела поверх чужого интерфейса
+        ['[data-track-wrap]', '[data-agent-bar]'].forEach((sel) => {
+          const el2 = document.querySelector(sel);
+          if (!el2) return;
+          const rb = el2.getBoundingClientRect();
+          if (rb.height > 0 && rb.width > 0 && getComputedStyle(el2).opacity !== '0') b = Math.min(b, rb.top - 6);
+        });
         const w = rr - l, h = b - t;
         hlBox.style.display = (w < 24 || h < 24) ? 'none' : '';
         hlBox.style.transform = 'translate(' + l + 'px,' + t + 'px)';
@@ -5113,6 +5121,14 @@ class Component extends DCLogic {
       const ph = phone();
       if (!ph) return [];
       const pb = ph.getBoundingClientRect();
+      // низ рабочей зоны — верх дока/панели агента: блок, наполовину уехавший под них, в цели не берём
+      let twTop = pb.bottom;
+      ['[data-track-wrap]', '[data-agent-bar]'].forEach((sel) => {
+        const e2 = document.querySelector(sel);
+        if (!e2) return;
+        const rb = e2.getBoundingClientRect();
+        if (rb.height > 0 && rb.width > 0 && getComputedStyle(e2).opacity !== '0') twTop = Math.min(twTop, rb.top);
+      });
       const out = [], seen = new Set();
       for (let gy = 0.16; gy <= 0.8; gy += 0.11) {
         for (let gx = 0.2; gx <= 0.82; gx += 0.15) {
@@ -5126,6 +5142,7 @@ class Component extends DCLogic {
           if (!el || el === ph || seen.has(el)) continue;
           const r3 = el.getBoundingClientRect();
           if (!(r3.width > 46 && r3.height > 30 && r3.height < pb.height * 0.5 && r3.bottom > pb.top + 60 && r3.top < pb.bottom - 120)) continue;
+          if (Math.min(r3.bottom, twTop) - Math.max(r3.top, pb.top) < r3.height * 0.62) continue;
           seen.add(el);
           out.push(el);
         }
