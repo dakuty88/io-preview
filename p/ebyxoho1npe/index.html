@@ -9485,6 +9485,25 @@ class Component extends DCLogic {
       }
       return l;
     };
+    // док и панель агента рисуются поверх контента, поэтому подсветки целей не должны
+    // уходить им под низ: обрезаем рамку по верхней границе видимого нижнего слоя
+    const workBottom = () => {
+      const ph2 = q('[data-phone]');
+      let wb = ph2 ? ph2.getBoundingClientRect().bottom : 1e6;
+      ['[data-track-wrap]', '[data-agent-bar]'].forEach((sel) => {
+        const lay = document.querySelector(sel);
+        if (!lay) return;
+        const lr = lay.getBoundingClientRect();
+        if (lr.height > 0 && lr.width > 0 && getComputedStyle(lay).opacity !== '0') wb = Math.min(wb, lr.top);
+      });
+      return wb;
+    };
+    // рамка шире цели на 4px, плюс 6px зазора до слоя
+    const clampBox = (box) => {
+      const lim = workBottom() - 10;
+      if (box.top + box.height > lim) box.height = Math.max(28, lim - box.top);
+      return box;
+    };
     let hoverOv = null, hoverElRef = null;
     const hoverHighlight = (target) => {
       const el = target ? target.el : null;
@@ -9504,7 +9523,7 @@ class Component extends DCLogic {
       const pr = ph.getBoundingClientRect(), er0 = el.getBoundingClientRect();
       const rad = getComputedStyle(el).borderRadius || '16px';
       const k5 = 1.025;
-      const er = { left: er0.left + er0.width * (1 - k5) / 2, top: er0.top + er0.height * (1 - k5) / 2, width: er0.width * k5, height: er0.height * k5 };
+      const er = clampBox({ left: er0.left + er0.width * (1 - k5) / 2, top: er0.top + er0.height * (1 - k5) / 2, width: er0.width * k5, height: er0.height * k5 });
       hoverOv = document.createElement('div');
       hoverOv.style.cssText = 'position:absolute;z-index:45;pointer-events:none;left:' + (er.left - pr.left - 4).toFixed(1) + 'px;top:' + (er.top - pr.top - 4).toFixed(1) + 'px;width:' + (er.width + 8).toFixed(1) + 'px;height:' + (er.height + 8).toFixed(1) + 'px;';
       el.style.transition = 'transform 380ms cubic-bezier(.22,1,.36,1)';
@@ -9698,7 +9717,8 @@ class Component extends DCLogic {
     const analyzeElement = (target) => {
       const ph = q('[data-phone]');
       if (!ph) return;
-      const pr = ph.getBoundingClientRect(), er = target.el.getBoundingClientRect();
+      const pr = ph.getBoundingClientRect(), erA = target.el.getBoundingClientRect();
+      const er = clampBox({ left: erA.left, top: erA.top, width: erA.width, height: erA.height });
       const rad = getComputedStyle(target.el).borderRadius || '16px';
       const ov = document.createElement('div');
       ov.style.cssText = 'position:absolute;z-index:46;pointer-events:none;left:' + (er.left - pr.left - 4).toFixed(1) + 'px;top:' + (er.top - pr.top - 4).toFixed(1) + 'px;width:' + (er.width + 8).toFixed(1) + 'px;height:' + (er.height + 8).toFixed(1) + 'px;opacity:0;transition:opacity 360ms ease;';
@@ -10652,8 +10672,11 @@ if (!document.__kbOutside) {
             hit[i2] = 1;
             const fr = c.el.getBoundingClientRect();
             const rN = (parseFloat(getComputedStyle(c.el).borderRadius) || 16) + 3;
+            // обводка не заходит под док/панель агента — они полупрозрачные, рамка сквозит
+            const limH = toY(workBottom() - 6) - (toY(fr.top) - 3);
+            const frH = Math.min(fr.height + 6, Math.max(28, limH));
             const g2 = document.createElement('span');
-            g2.style.cssText = 'position:absolute;box-sizing:border-box;pointer-events:none;left:' + (toX(fr.left) - 3).toFixed(1) + 'px;top:' + (toY(fr.top) - 3).toFixed(1) + 'px;width:' + (fr.width + 6).toFixed(1) + 'px;height:' + (fr.height + 6).toFixed(1) + 'px;border-radius:' + rN + 'px;border:1.5px solid rgba(130,175,255,0.85);background:rgba(140,185,255,0.12);box-shadow:0 0 18px rgba(120,170,255,0.5), inset 0 0 18px rgba(140,185,255,0.15);opacity:0;';
+            g2.style.cssText = 'position:absolute;box-sizing:border-box;pointer-events:none;left:' + (toX(fr.left) - 3).toFixed(1) + 'px;top:' + (toY(fr.top) - 3).toFixed(1) + 'px;width:' + (fr.width + 6).toFixed(1) + 'px;height:' + frH.toFixed(1) + 'px;border-radius:' + rN + 'px;border:1.5px solid rgba(130,175,255,0.85);background:rgba(140,185,255,0.12);box-shadow:0 0 18px rgba(120,170,255,0.5), inset 0 0 18px rgba(140,185,255,0.15);opacity:0;';
             ov.appendChild(g2);
             g2.animate([{ opacity: 0 }, { opacity: 1, offset: 0.16 }, { opacity: 1, offset: 0.72 }, { opacity: 0 }], { duration: 2100, easing: 'ease-in-out' }).onfinish = () => g2.remove();
           }
