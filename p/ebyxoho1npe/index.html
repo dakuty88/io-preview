@@ -3815,7 +3815,9 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   html[data-standalone] [data-desk] { height: 100% !important; height: 100dvh !important; height: 100lvh !important; min-height: 100% !important; min-height: 100lvh !important; padding: 0 !important; overflow: hidden !important; }
   html[data-standalone], html[data-standalone] body { height: 100% !important; height: 100dvh !important; height: 100lvh !important; margin: 0 !important; overflow: hidden !important; }
   html[data-standalone] [data-desktop] { padding-top: calc(24px + env(safe-area-inset-top)) !important; }
-  html[data-standalone] [data-app-shell] { padding-top: env(safe-area-inset-top) !important; box-sizing: border-box; }
+  /* панели тянутся под чёлку (фон до самого верха), отступы — у контента
+     панелей, не у шелла: иначе светлый фон шелла даёт полосу над тёмными окнами */
+  html[data-standalone] [data-home] { padding-top: calc(env(safe-area-inset-top) + 18px) !important; }
   /* шапка переписки ПИНГ дотягивается под системный статус-бар (как в нативных
      мессенджерах): вытягиваем её вверх на величину safe-паддинга шелла и
      возвращаем этот запас внутренним отступом самой шапки */
@@ -3839,10 +3841,10 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   [data-ping-tab] { border-radius: 15px; transition: color 220ms ease, background 240ms cubic-bezier(.22,1,.36,1); }
   [data-ping-tab][data-on="1"] { background: rgba(58,126,247,0.11); }
   /* ПИНГ: в standalone safe-зона уже даёт верхний отступ — макетные 60px лишние */
-  html[data-standalone] [data-ping] > div:first-of-type { padding-top: 16px !important; }
+  html[data-standalone] [data-ping] > div:first-of-type { padding-top: calc(env(safe-area-inset-top) + 10px) !important; }
   /* :first-of-type, не :first-child — первым чилдом лежит span-аврора */
   html[data-standalone] [data-ping-thread] > div:first-of-type {
-    margin-top: calc(-1 * env(safe-area-inset-top)) !important;
+    /* шелл больше не отступает от чёлки — отрицательный margin не нужен */
     padding-top: calc(env(safe-area-inset-top) + 10px) !important;
   }
   /* --sab: подъём нижнего слоя UI в standalone. Не весь safe-area inset, а только
