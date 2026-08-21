@@ -9245,8 +9245,8 @@ class Component extends DCLogic {
         };
         const recTapFeedback = (sel) => { const b = recRow.querySelector(sel); if (b) { b.addEventListener('pointerdown', () => press(b)); } };
         const hideRecRow = () => {
-          const inbarFix2 = c.querySelector('[data-chat-inbar]');
-          if (inbarFix2) setTimeout(() => { inbarFix2.style.minHeight = ''; inbarFix2.style.boxSizing = ''; }, 500);
+          const wrapFix2 = inputRow.parentElement;
+          setTimeout(() => { wrapFix2.style.height = ''; }, 500);
           recParts().forEach((b) => { b.style.animation = 'none'; });
           try {
             recRow.animate([
@@ -9273,10 +9273,10 @@ class Component extends DCLogic {
         micBtn2.addEventListener('click', () => {
           if (inEl) inEl.blur();
           chatKb(false);
-          // высота композера замораживается — центр экрана не съезжает
-          // (inbar content-box: minHeight ставится вместе с border-box, иначе паддинг добавится сверху)
-          const inbarFix = c.querySelector('[data-chat-inbar]');
-          if (inbarFix) { inbarFix.style.boxSizing = 'border-box'; inbarFix.style.minHeight = inbarFix.offsetHeight + 'px'; }
+          // высота обёртки композера замораживается: центр экрана не съезжает,
+          // а rec-бар (bottom:0) остаётся на линии live-бара, а не подпрыгивает за схлопнутым inputRow
+          const wrapFix = inputRow.parentElement;
+          wrapFix.style.height = wrapFix.offsetHeight + 'px';
           inputRow.style.pointerEvents = 'none';
           inputRow.style.transition = 'opacity 220ms ease, transform 420ms ' + EASE_UI + ', filter 240ms ease';
           inputRow.style.transformOrigin = '50% 100%';
