@@ -3604,17 +3604,18 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   @property --hexA { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
   @keyframes hexSpin { to { --hexA: 360deg; } }
   [data-hexav-rim], [data-hexav-sheen] { position: absolute; pointer-events: none; }
+  /* золотая кромка: несколько стопов дают металл уже в статике, а тёмное золото
+     держит контраст с белой карточкой — по нему светлый блик виден, а не теряется */
   [data-hexav-rim] {
-    background: linear-gradient(145deg, #bccbf8 0%, #cdc0fa 48%, #bccbf8 100%);
-    filter: drop-shadow(0 2px 7px rgba(112,116,240,0.28));
+    background: linear-gradient(145deg, #a9761f 0%, #f0dba4 22%, #cf9f3d 44%, #fbeec6 68%, #c08f2c 86%, #a9761f 100%);
+    filter: drop-shadow(0 2px 7px rgba(186,140,45,0.35));
   }
-  /* акцент насыщенный, а не белый: на белой карточке светлый блик читался бы разрывом контура */
   [data-hexav-sheen] {
     background: conic-gradient(from var(--hexA) at 50% 50%,
-      rgba(93,120,240,0) 0deg, rgba(93,120,240,0) 224deg,
-      rgba(93,120,240,0.75) 284deg, rgba(122,92,242,0.98) 316deg,
-      rgba(93,120,240,0.7) 346deg, rgba(93,120,240,0) 360deg);
-    animation: hexSpin 5.5s linear infinite;
+      rgba(255,251,236,0) 0deg, rgba(255,251,236,0) 214deg,
+      rgba(255,247,222,0.72) 276deg, rgba(255,253,246,1) 312deg,
+      rgba(255,247,222,0.68) 346deg, rgba(255,251,236,0) 360deg);
+    animation: hexSpin 4.8s linear infinite;
   }
   @keyframes chatWave {
     0%, 100% { transform: scaleY(0.35); }
@@ -5651,7 +5652,7 @@ class Component extends DCLogic {
       const premium = (row && row.getAttribute('data-premium')) || av.getAttribute('data-premium');
       if (premium) {
         // подложки крупнее аватарки: наружу торчит только кромка, середину закрывает фото
-        const pad = 1.6;
+        const pad = 1.9;
         const bigPath = 'path("' + hexPath(size + pad * 2) + '")';
         ['data-hexav-rim', 'data-hexav-sheen'].forEach((attr) => {
           const layer = document.createElement('span');
