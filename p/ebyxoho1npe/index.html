@@ -6629,14 +6629,24 @@ class Component extends DCLogic {
         if (window.visualViewport) window.visualViewport.addEventListener('resize', re);
         [60, 240, 700].forEach((d) => setTimeout(re, d));
       }
-      // кэшируем позицию иконки сообщений в домашней раскладке — цель полёта окна ПИНГ
-      if (on) setTimeout(() => {
-        try {
-          if (!window.__ioDockState) return;
-          const lb = wrap.querySelector('[data-left-btn]');
-          if (lb && window.__ioRectIn) window.__ioLeftHomeIr = window.__ioRectIn(lb);
-        } catch (e) {}
-      }, skipAnim ? 30 : 420);
+      // кэшируем позицию иконки сообщений в домашней раскладке — цель полёта окна ПИНГ.
+      // ждём, пока иконка реально сядет: при сборке разлётом она в этот момент ещё за краем
+      // экрана, и в кэш попадала точка вроде x=-141 — окно ПИНГ улетало мимо дока
+      if (on) {
+        const cacheIr = (tries) => {
+          try {
+            if (!window.__ioDockState) return;
+            const lb = wrap.querySelector('[data-left-btn]');
+            if (!lb || !window.__ioRectIn) return;
+            const r = lb.getBoundingClientRect();
+            const pb = phone ? phone.getBoundingClientRect() : null;
+            const inside = !pb || (r.width > 4 && r.left >= pb.left - 2 && r.right <= pb.right + 2);
+            if (inside || tries <= 0) { window.__ioLeftHomeIr = window.__ioRectIn(lb); return; }
+          } catch (e) { return; }
+          setTimeout(() => cacheIr(tries - 1), 120);
+        };
+        setTimeout(() => cacheIr(12), skipAnim ? 30 : 420);
+      }
       // синхронно, в этом же кадре: geo() только что переписал style сегментов, и если
       // отложить до rAF, браузер успевает отрисовать «сброшенный» кадр + повторный разлёт
       if (window.__ioBarExpanded && window.__ioExpandBar) window.__ioExpandBar(true);
@@ -8150,7 +8160,7 @@ class Component extends DCLogic {
       window.__ioBarExpanded = !!on;
       window.__ioExpandBar = expand;
       if (midSliders) {
-        midSliders.style.width = on ? '0px' : '38px';
+        midSliders.style.width = on ? '0px' : '36px';
         midSliders.style.opacity = on ? '0' : '1';
         midSliders.style.marginRight = on ? '-21px' : '0px';
       }
@@ -8158,7 +8168,7 @@ class Component extends DCLogic {
       if (slideIcon) { slideIcon.style.opacity = on ? '1' : '0'; slideIcon.style.transform = on ? 'scale(1)' : 'scale(0.5)'; }
       const shopBtn = q('[data-shop-btn]');
       if (shopBtn) {
-        shopBtn.style.width = on ? '0px' : '38px';
+        shopBtn.style.width = on ? '0px' : '36px';
         shopBtn.style.opacity = on ? '0' : '1';
         shopBtn.style.marginLeft = on ? '-21px' : '0px';
       }
@@ -8170,14 +8180,14 @@ class Component extends DCLogic {
       const plate = q('[data-mid-plate]');
       if (plate) {
         plate.style.padding = on ? '0' : '0 11px';
-        plate.style.width = on ? '296px' : '238px';
+        plate.style.width = on ? '296px' : '229px';
       }
       const segs = document.querySelectorAll('[data-seg]');
       [[segs[0], -1], [segs[2], 1]].forEach(([el, dir]) => {
         if (!el) return;
         el.style.transition = 'transform 520ms cubic-bezier(.5,0,.3,1), width 460ms cubic-bezier(.22,1,.36,1), opacity 380ms ease';
         el.style.transform = on ? 'translateX(' + dir * 150 + 'px) scale(0.7)' : 'translateX(0) scale(1)';
-        el.style.width = on ? '0px' : '52px';
+        el.style.width = on ? '0px' : '53px';
         el.style.opacity = on ? '0' : '1';
         el.style.pointerEvents = on ? 'none' : 'auto';
       });
