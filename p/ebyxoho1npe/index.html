@@ -8395,9 +8395,47 @@ class Component extends DCLogic {
       a.style.transform = 'translateY(26px) scale(0.92)';
       setTimeout(() => a.remove(), 340);
     };
+    // реплики ассистента: каждая следующая запись продолжает диалог, а не обрывает его
+    const ANS_MSGS = [
+      'Готово! Каждый день в 18:30 буду присылать тебе подборку новых товаров, наиболее релевантных твоим интересам. Первая подборка придёт уже сегодня в 18:30.',
+      'Принял. Добавил в подборку технику и аксессуары, всё дороже твоего обычного чека буду отсеивать.',
+      'Ок, в конце подборки отдельным блоком добавлю то, что подешевело с прошлой недели.',
+      'Понял. Захочешь поменять время или темы — просто скажи, перестрою подборку.'
+    ];
+    let ansIdx = 0;
+    const ansNextMsg = () => ANS_MSGS[Math.min(ansIdx++, ANS_MSGS.length - 1)];
+    const ansType = (card, target, caret, msg) => {
+      convoAns = msg;
+      const body = card.querySelector('[data-ans-body]');
+      let ci = 0;
+      if (card.__typeT) clearInterval(card.__typeT);
+      card.__typeT = setInterval(() => {
+        if (ansEl !== card) { clearInterval(card.__typeT); card.__typeT = 0; return; }
+        ci += 2;
+        target.textContent = msg.slice(0, ci);
+        if (body) body.scrollTop = body.scrollHeight;
+        if (ci >= msg.length) { clearInterval(card.__typeT); card.__typeT = 0; caret.style.display = 'none'; }
+      }, 34);
+    };
     const showIoAnswer = () => {
       const l = fxLayer();
       if (!l) return;
+      // карточка уже открыта — продолжаем диалог в ней, а не начинаем заново
+      if (ansEl && ansEl.isConnected) {
+        const bodyC = ansEl.querySelector('[data-ans-body]');
+        const caretC = ansEl.querySelector('[data-ans-caret]');
+        if (bodyC && caretC) {
+          const sep = document.createElement('div');
+          sep.style.cssText = 'height:1px;margin:11px 0 9px;background:linear-gradient(90deg, rgba(101,150,246,0.3), rgba(101,150,246,0.05));';
+          bodyC.insertBefore(sep, caretC);
+          const sp = document.createElement('span');
+          sp.setAttribute('data-ans-type', '1');
+          bodyC.insertBefore(sp, caretC);
+          caretC.style.display = '';
+          ansType(ansEl, sp, caretC, ansNextMsg());
+          return;
+        }
+      }
       hideIoAnswer();
       const p = document.createElement('div');
       ansEl = p;
@@ -8406,11 +8444,10 @@ class Component extends DCLogic {
       p.innerHTML =
         '<div style="position:relative;background:linear-gradient(180deg,#eef4ff 0%,#e4eeff 100%);border-radius:22px;border:1px solid rgba(101,150,246,0.4);box-shadow:0 1px 2px rgba(30,60,140,0.08), 0 12px 28px rgba(40,90,200,0.2), 0 30px 60px rgba(30,60,140,0.22);padding:12px 14px;box-sizing:border-box;display:flex;flex-direction:column;gap:8px;">' +
         '<div data-ans-handle="1" title="Потяните вверх, чтобы продолжить в чате" style="flex:none;display:flex;justify-content:center;align-items:center;height:26px;margin:-12px -14px -10px;cursor:grab;touch-action:none;"><span style="width:38px;height:4.5px;border-radius:3px;background:rgba(47,124,246,0.35);transition:background 200ms ease, transform 200ms ease;"></span></div>' +
-        // галочка поднимается в полосу «ручки»: отдельной строкой она отъедала 28px пустоты над текстом
-        '<div style="display:flex;align-items:center;margin:-12px 0 -10px;">' +
-        '<span data-ans-x="1" style="margin-left:auto;flex:none;width:22px;height:22px;border-radius:50%;background:linear-gradient(180deg, #3b8bf5, #1f6ee0);box-shadow:0 3px 8px rgba(40,110,220,0.35);display:flex;align-items:center;justify-content:center;cursor:pointer;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"></path></svg></span>' +
-        '</div>' +
-        '<div style="font-size:14.5px;line-height:1.55;color:#17305c;text-wrap:pretty;max-height:196px;overflow-y:auto;scrollbar-width:none;"><span data-ans-type="1"></span><span data-ans-caret="1" style="display:inline-block;width:2px;height:15px;background:#2f7cf6;vertical-align:-2px;margin-left:1px;animation:aiGridPulse 0.9s ease-in-out infinite;"></span></div>' +
+        // галочка того же стиля, что крестик записи, и вне потока: строкой она отъедала
+        // пустоту над текстом. Место под неё в первой строке держит float-распорка
+        '<span data-ans-x="1" style="position:absolute;top:9px;right:11px;z-index:2;width:30px;height:30px;border-radius:50%;background:#ffffff;box-shadow:0 2px 6px rgba(40,60,100,0.18);display:flex;align-items:center;justify-content:center;cursor:pointer;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#12182a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"></path></svg></span>' +
+        '<div data-ans-body="1" style="font-size:14.5px;line-height:1.55;color:#17305c;text-wrap:pretty;max-height:196px;overflow-y:auto;scrollbar-width:none;"><span style="float:right;width:34px;height:22px;"></span><span data-ans-type="1"></span><span data-ans-caret="1" style="display:inline-block;width:2px;height:15px;background:#2f7cf6;vertical-align:-2px;margin-left:1px;animation:aiGridPulse 0.9s ease-in-out infinite;"></span></div>' +
         '</div>';
       l.appendChild(p);
       requestAnimationFrame(() => { p.style.opacity = '1'; p.style.transform = 'translateY(0) scale(1)'; });
@@ -8496,16 +8533,8 @@ class Component extends DCLogic {
         handle.addEventListener('click', () => { if (Math.abs(hDy) < 6) expandToChat(); });
       }
       const typeEl = p.querySelector('[data-ans-type]'), caretEl = p.querySelector('[data-ans-caret]');
-      const msg = 'Готово! Каждый день в 18:30 буду присылать тебе подборку новых товаров, наиболее релевантных твоим интересам. Первая подборка придёт уже сегодня в 18:30.';
-      convoAns = msg;
       if (!convoUser) convoUser = 'Хочу чтобы каждый день в 18:30 ты сбрасывал мне подборки новых товаров, которые наиболее релевантны моим интересам.';
-      let ci = 0;
-      const typeT = setInterval(() => {
-        if (ansEl !== p) { clearInterval(typeT); return; }
-        ci += 2;
-        typeEl.textContent = msg.slice(0, ci);
-        if (ci >= msg.length) { clearInterval(typeT); caretEl.style.display = 'none'; }
-      }, 34);
+      ansType(p, typeEl, caretEl, ansNextMsg());
     };
 
     const restoreDockAfterRec = (delay) => {
