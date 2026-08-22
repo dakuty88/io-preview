@@ -6296,6 +6296,10 @@ class Component extends DCLogic {
       const closeSet = () => {
         if (!setEl) return;
         const s2 = setEl; setEl = null;
+        const vl = s2.__veil;
+        if (vl) { vl.style.opacity = '0'; setTimeout(() => vl.remove(), 280); }
+        const crt = document.querySelector('[data-cert-card]');
+        if (crt) { crt.style.opacity = '0'; crt.style.transform = 'translateY(10px) scale(0.94)'; setTimeout(() => crt.remove(), 260); }
         s2.style.opacity = '0'; s2.style.transform = 'translateY(8px) scale(0.6)';
         setTimeout(() => s2.remove(), 240);
       };
@@ -6313,12 +6317,12 @@ class Component extends DCLogic {
           // неоморфизм по природе сливается с фоном: поверхность светлее подложки,
           // плюс настоящая тень отрыва (контактная + основная + окружающая) и кромка
           'background:linear-gradient(150deg, #ffffff 0%, #eff4fc 55%, #e8eef8 100%);backdrop-filter:blur(18px) saturate(150%);-webkit-backdrop-filter:blur(18px) saturate(150%);' +
-          'box-shadow:-8px -8px 18px rgba(255,255,255,0.95), 0 2px 5px rgba(40,65,120,0.12), 0 14px 30px rgba(40,65,120,0.26), 0 34px 66px rgba(40,65,120,0.20), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 0 1px rgba(255,255,255,0.7), 0 0 0 1px rgba(120,145,195,0.22);' +
+          'box-shadow:-8px -8px 18px rgba(255,255,255,0.95), 0 2px 6px rgba(35,58,110,0.16), 0 18px 38px rgba(35,58,110,0.34), 0 44px 84px rgba(35,58,110,0.26), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 0 1px rgba(255,255,255,0.7), 0 0 0 1px rgba(110,138,190,0.3);' +
           'opacity:0;transform:translateY(10px) scale(0.6);transform-origin:50% 118%;transition:opacity 200ms ease, transform 480ms cubic-bezier(.22,1.42,.36,1);font-family:Nunito,system-ui,sans-serif;';
         // неоморфный набор: монохром, выпуклые плитки и вдавленный трек.
         // Цветные пастельные подложки убраны — они и делали иконки «дежурными»
         const RAISED = 'background:linear-gradient(145deg,#ffffff,#e7ecf6);' +
-          'box-shadow:-3px -3px 7px rgba(255,255,255,0.95), 3px 4px 9px rgba(58,84,140,0.20), inset 0 0 0 0.6px rgba(255,255,255,0.75);';
+          'box-shadow:-3px -3px 8px rgba(255,255,255,0.98), 3px 5px 11px rgba(52,78,135,0.28), inset 0 0 0 0.7px rgba(255,255,255,0.85);';
         const SUNK = 'box-shadow:inset 3px 3px 7px rgba(58,84,140,0.20), inset -3px -3px 7px rgba(255,255,255,0.95);';
         const tile = (id, glyph, label, extra) =>
           '<div data-set-i="' + id + '" style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:8px;padding:9px 2px 8px;border-radius:18px;cursor:pointer;opacity:0;transform:translateY(9px);transition:box-shadow 200ms ease, opacity 260ms ease, transform 380ms cubic-bezier(.22,1.3,.36,1);">' +
@@ -6345,11 +6349,21 @@ class Component extends DCLogic {
           tile('skins', '<path d="M12 3.5c-4.7 0-8.5 3.8-8.5 8.5S7.3 20.5 12 20.5c1.2 0 2-.8 2-1.9 0-.5-.2-.9-.5-1.3-.3-.4-.5-.8-.5-1.3 0-1 .8-1.9 1.9-1.9h1.7c2 0 3.4-1.5 3.4-3.5 0-3.7-3.4-6.6-8-6.6z"></path><circle cx="8" cy="10" r="1.1" fill="#48546f" stroke="none"></circle><circle cx="12" cy="8" r="1.1" fill="#48546f" stroke="none"></circle><circle cx="15.6" cy="10.4" r="1.1" fill="#48546f" stroke="none"></circle>', 'Скины') +
           tile('more', '<circle cx="5.5" cy="12" r="1.7" fill="#48546f" stroke="none"></circle><circle cx="12" cy="12" r="1.7" fill="#48546f" stroke="none"></circle><circle cx="18.5" cy="12" r="1.7" fill="#48546f" stroke="none"></circle>', 'Ещё') +
           '</div>';
+        // лёгкая вуаль под панелью — она отрывает её от фона надёжнее любой тени
+        const veil = document.createElement('div');
+        veil.setAttribute('data-appset-veil', '1');
+        veil.style.cssText = 'position:fixed;inset:0;z-index:9998;pointer-events:none;opacity:0;transition:opacity 260ms ease;' +
+          'background:radial-gradient(120% 62% at 50% 108%, rgba(24,42,86,0.26) 0%, rgba(24,42,86,0.12) 42%, rgba(24,42,86,0) 72%);';
+        document.body.appendChild(veil);
+        setEl.__veil = veil;
         document.body.appendChild(setEl);
         requestAnimationFrame(() => {
           if (!setEl) return;
+          veil.style.opacity = '1';
           setEl.style.opacity = '1';
           setEl.style.transform = 'translateY(0) scale(1)';
+          // импульс «панель встала»
+          setTimeout(() => { if (setEl && window.__ioReadyPing) window.__ioReadyPing(setEl); }, 430);
           setEl.querySelectorAll('[data-set-row], [data-set-i]').forEach((r2, ri) => {
             setTimeout(() => { r2.style.opacity = '1'; r2.style.transform = 'translateY(0)'; }, 100 + ri * 45);
           });
@@ -6429,12 +6443,59 @@ class Component extends DCLogic {
           const it = e2.target.closest('[data-set-i]');
           if (!it) return;
           e2.stopPropagation();
-          if (it.getAttribute('data-set-i') === 'translate') translateNow();
+          const sid = it.getAttribute('data-set-i');
+          if (sid === 'translate') translateNow();
+          if (sid === 'security') showCert();
           const tl = it.querySelector('[data-set-tile]');
           if (tl) { tl.style.background = 'linear-gradient(145deg,#e7ecf6,#ffffff)'; tl.style.boxShadow = 'inset 2px 3px 6px rgba(58,84,140,0.22), inset -2px -2px 6px rgba(255,255,255,0.95)'; }
           if (window.__ioHaptic) window.__ioHaptic('light');
           setTimeout(() => { if (setEl && tl) { tl.style.background = ''; tl.style.boxShadow = ''; } }, 450);
         });
+        // СЕРТИФИКАТ БЕЗОПАСНОСТИ метаресурса — карточка над панелью
+        const showCert = () => {
+          const was = document.querySelector('[data-cert-card]');
+          if (was) { was.style.opacity = '0'; was.style.transform = 'translateY(10px) scale(0.94)'; setTimeout(() => was.remove(), 240); return; }
+          const cur3 = window.__ioActiveApp;
+          const host3 = (cur3 && APPS[cur3]) ? APPS[cur3].title : 'iO';
+          const dom = 'io://' + (cur3 || 'io') + '.meta';
+          const pr3 = setEl.getBoundingClientRect();
+          const c = document.createElement('div');
+          c.setAttribute('data-cert-card', '1');
+          c.style.cssText = 'position:fixed;left:' + Math.round(pr3.left) + 'px;width:' + Math.round(pr3.width) + 'px;' +
+            'bottom:' + Math.round(window.innerHeight - pr3.top + 10) + 'px;z-index:9999;box-sizing:border-box;padding:14px 16px 15px;border-radius:24px;' +
+            'background:linear-gradient(150deg,#ffffff 0%,#eff4fc 60%,#e8eef8 100%);backdrop-filter:blur(18px) saturate(150%);-webkit-backdrop-filter:blur(18px) saturate(150%);' +
+            'box-shadow:-8px -8px 18px rgba(255,255,255,0.95), 0 2px 6px rgba(35,58,110,0.16), 0 18px 38px rgba(35,58,110,0.34), inset 0 1px 0 rgba(255,255,255,0.95), 0 0 0 1px rgba(110,138,190,0.3);' +
+            'opacity:0;transform:translateY(10px) scale(0.94);transform-origin:50% 120%;transition:opacity 220ms ease, transform 420ms cubic-bezier(.22,1.3,.36,1);font-family:Nunito,system-ui,sans-serif;';
+          const line = (k, v) => '<div style="display:flex;align-items:baseline;gap:8px;margin-top:7px;">' +
+            '<span style="flex:none;width:114px;font-size:11.5px;font-weight:700;color:#8d99b3;white-space:nowrap;">' + k + '</span>' +
+            '<span style="flex:1;min-width:0;font-size:12.5px;font-weight:700;color:#2c3650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + v + '</span></div>';
+          c.innerHTML =
+            '<div style="display:flex;align-items:center;gap:11px;">' +
+            '<span style="flex:none;width:38px;height:38px;border-radius:13px;display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,#ffffff,#e7ecf6);box-shadow:-3px -3px 8px rgba(255,255,255,0.98), 3px 5px 11px rgba(52,78,135,0.28), inset 0 0 0 0.7px rgba(255,255,255,0.85);">' +
+            '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#2f7d5c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10" rx="3"></rect><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"></path><circle cx="12" cy="15.5" r="1.3" fill="#2f7d5c" stroke="none"></circle></svg></span>' +
+            '<span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;">' +
+            '<span style="font-size:14.5px;font-weight:800;letter-spacing:-0.2px;color:#141d35;">Соединение защищено</span>' +
+            '<span style="font-size:11.5px;font-weight:700;color:#7f8ca6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + dom + '</span></span>' +
+            '<span data-cert-x="1" style="flex:none;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;background:linear-gradient(145deg,#ffffff,#e9eef8);box-shadow:-2px -2px 5px rgba(255,255,255,0.95), 2px 3px 7px rgba(58,84,140,0.22);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#5d6a85" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></span>' +
+            '</div>' +
+            '<div style="height:1px;margin:12px 0 4px;background:linear-gradient(90deg, rgba(120,145,200,0), rgba(120,145,200,0.28) 12%, rgba(120,145,200,0.28) 88%, rgba(120,145,200,0));"></div>' +
+            line('Метаресурс', host3) +
+            line('Сертификат', 'iO Trust Services R3') +
+            line('Шифрование', 'TLS 1.3 · AES-256-GCM') +
+            line('Действителен до', '14 мая 2027') +
+            '<div style="display:flex;align-items:center;gap:7px;margin-top:11px;">' +
+            '<span style="width:7px;height:7px;border-radius:50%;background:linear-gradient(180deg,#5ede8a,#2fbf68);box-shadow:0 0 0 3px rgba(74,190,120,0.18);"></span>' +
+            '<span style="font-size:11.5px;font-weight:700;color:#3f8f68;">Проверен iO · без утечек данных</span></div>';
+          document.body.appendChild(c);
+          requestAnimationFrame(() => { c.style.opacity = '1'; c.style.transform = 'translateY(0) scale(1)'; });
+          setTimeout(() => { if (c.isConnected && window.__ioReadyPing) window.__ioReadyPing(c); }, 380);
+          c.querySelector('[data-cert-x]').addEventListener('click', (e4) => {
+            e4.stopPropagation();
+            c.style.opacity = '0'; c.style.transform = 'translateY(10px) scale(0.94)';
+            setTimeout(() => c.remove(), 240);
+          });
+          if (window.__ioHaptic) window.__ioHaptic('light');
+        };
         // отразить текущий масштаб в сегменте при открытии
         (() => {
           const root2 = setRoot();
@@ -7859,12 +7920,12 @@ class Component extends DCLogic {
       const host = el.parentElement;
       const r = el.getBoundingClientRect();
       if (r.width < 24 || r.height < 16) return;
-      const hr = host.getBoundingClientRect();
-      const old = host.querySelector('[data-ready-ping][data-for="' + (el.getAttribute('data-ping-id') || '') + '"]');
-      if (old) old.remove();
+      // элемент может быть fixed (поповеры) — тогда и кольцо ставим по вьюпорту
+      const fixed = getComputedStyle(el).position === 'fixed';
+      const hr = fixed ? { left: 0, top: 0 } : host.getBoundingClientRect();
       const ping = document.createElement('span');
       ping.setAttribute('data-ready-ping', '1');
-      ping.style.cssText = 'position:absolute;pointer-events:none;z-index:2;box-sizing:border-box;' +
+      ping.style.cssText = 'position:' + (fixed ? 'fixed' : 'absolute') + ';pointer-events:none;z-index:9998;box-sizing:border-box;' +
         'left:' + (r.left - hr.left).toFixed(1) + 'px;top:' + (r.top - hr.top).toFixed(1) + 'px;' +
         'width:' + r.width.toFixed(1) + 'px;height:' + r.height.toFixed(1) + 'px;' +
         'border-radius:' + getComputedStyle(el).borderTopLeftRadius + ';';
