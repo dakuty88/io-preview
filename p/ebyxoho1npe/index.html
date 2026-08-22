@@ -6674,9 +6674,6 @@ class Component extends DCLogic {
       if (busyAnim() || shell.style.display === 'none') return;
       try { if (window.__ioBackToDesktop) window.__ioBackToDesktop(); } catch (e) {}
       try { if (window.__ioPingCloseThread) window.__ioPingCloseThread(); } catch (e) {}
-      // индикатор страниц не должен выглядывать поверх сворачивающегося приложения
-      const dots = document.querySelector('[data-home-dots]');
-      if (dots) dots.style.display = 'none';
       setAnim(true);
       desk.getAnimations().forEach((a) => a.cancel());
       // плавный морф бара стартует сразу; цель полёта окна ПИНГ — кэшированная позиция
@@ -6707,9 +6704,6 @@ class Component extends DCLogic {
       ], { duration: 380, delay: 180, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' });
       shellAnim.onfinish = () => {
         shell.style.display = 'none';
-        // возвращаем индикатор страниц: рабочий стол снова виден
-        const dots2 = document.querySelector('[data-home-dots]');
-        if (dots2) dots2.style.display = 'flex';
         shellAnim.cancel();
         desk.style.transform = 'scale(1)';
         desk.style.filter = 'blur(0px)';
