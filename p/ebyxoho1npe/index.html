@@ -6304,22 +6304,27 @@ class Component extends DCLogic {
         const btn = document.querySelector('[data-mid-sliders]');
         if (!btn) return;
         const br = btn.getBoundingClientRect();
-        const W2 = 292;
+        const W2 = 318;
         const left = Math.min(Math.max(10, br.left + br.width / 2 - W2 * 0.32), window.innerWidth - W2 - 10);
         setEl = document.createElement('div');
         setEl.setAttribute('data-appset-pop', '1');
-        setEl.style.cssText = 'position:fixed;left:' + left.toFixed(0) + 'px;bottom:' + popBottom() + 'px;z-index:9999;width:' + W2 + 'px;padding:12px 10px 10px;border-radius:22px;box-sizing:border-box;' +
+        setEl.style.cssText = 'position:fixed;left:' + left.toFixed(0) + 'px;bottom:' + popBottom() + 'px;z-index:9999;width:' + W2 + 'px;padding:14px 12px 12px;border-radius:26px;box-sizing:border-box;' +
           'background:linear-gradient(168deg, rgba(255,255,255,0.97) 0%, rgba(240,246,255,0.94) 100%);backdrop-filter:blur(20px) saturate(150%);-webkit-backdrop-filter:blur(20px) saturate(150%);' +
           'box-shadow:inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 0 0.6px rgba(255,255,255,0.5), 0 0 0 1px rgba(128,148,190,0.42), 0 16px 40px rgba(30,50,90,0.28);' +
           'opacity:0;transform:translateY(10px) scale(0.55);transform-origin:32% 100%;transition:opacity 200ms ease, transform 480ms cubic-bezier(.22,1.42,.36,1);font-family:Nunito,system-ui,sans-serif;';
-        const ic = (p) => '<span style="flex:none;width:22px;display:flex;align-items:center;justify-content:center;">' +
-          '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5d6a85" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + p + '</svg></span>';
+        // глиф в мягкой плитке: голая иконка на пустом фоне и делала список «плоским»
+        const ic = (p, tint, ink) => '<span style="flex:none;width:29px;height:29px;border-radius:9px;display:flex;align-items:center;justify-content:center;' +
+          'background:linear-gradient(160deg,' + tint + ');box-shadow:inset 0 0 0 0.7px rgba(255,255,255,0.7), 0 1px 2px rgba(30,50,90,0.10);">' +
+          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="' + ink + '" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">' + p + '</svg></span>';
+        const chev = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#b3bdd0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><path d="M9.5 5.5L16 12l-6.5 6.5"></path></svg>';
         const row = (id, icon, label, extra) =>
-          '<div data-set-i="' + id + '" style="display:flex;align-items:center;gap:12px;padding:9.5px 10px;border-radius:13px;cursor:pointer;opacity:0;transform:translateY(9px);transition:background 160ms ease, opacity 260ms ease, transform 380ms cubic-bezier(.22,1.3,.36,1);">' +
-          icon + '<span style="flex:1;font-size:14.5px;font-weight:600;letter-spacing:-0.1px;color:#16203a;">' + label + '</span>' + (extra || '') + '</div>';
+          '<div data-set-i="' + id + '" style="position:relative;display:flex;align-items:center;gap:11px;padding:9px 10px;border-radius:14px;cursor:pointer;opacity:0;transform:translateY(9px);transition:background 160ms ease, opacity 260ms ease, transform 380ms cubic-bezier(.22,1.3,.36,1);">' +
+          icon + '<span style="flex:1;font-size:15px;font-weight:600;letter-spacing:-0.15px;color:#141d35;">' + label + '</span>' +
+          '<span style="flex:none;display:flex;align-items:center;gap:8px;">' + (extra || '') + '</span></div>' +
+          '<div style="height:1px;margin:0 10px 0 50px;background:rgba(120,145,200,0.16);"></div>';
         setEl.innerHTML =
-          '<div data-set-row="1" style="display:flex;align-items:center;padding:0 8px 7px;opacity:0;transform:translateY(9px);transition:opacity 260ms ease, transform 380ms cubic-bezier(.22,1.3,.36,1);">' +
-          '<span style="font-size:10.5px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;color:#99a4bb;">Настройки</span>' +
+          '<div data-set-row="1" style="display:flex;align-items:center;padding:0 10px 10px;opacity:0;transform:translateY(9px);transition:opacity 260ms ease, transform 380ms cubic-bezier(.22,1.3,.36,1);">' +
+          '<span style="font-size:15.5px;font-weight:700;letter-spacing:-0.2px;color:#141d35;">Настройки</span>' +
           '<span data-set-i="more" style="margin-left:auto;width:26px;height:26px;border-radius:50%;background:rgba(58,126,247,0.1);display:flex;align-items:center;justify-content:center;cursor:pointer;"><svg width="14" height="14" viewBox="0 0 24 24" fill="#3a7ef7"><circle cx="5" cy="12" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="19" cy="12" r="2"></circle></svg></span></div>' +
           // размер шрифта — сегмент как в Safari
           '<div data-set-row="1" data-set-i="font" style="display:flex;align-items:stretch;height:34px;margin:2px 2px 8px;border-radius:11px;background:rgba(58,126,247,0.07);box-shadow:inset 0 0 0 1px rgba(120,145,200,0.16);overflow:hidden;cursor:pointer;opacity:0;transform:translateY(9px);transition:opacity 260ms ease, transform 380ms cubic-bezier(.22,1.3,.36,1);">' +
@@ -6327,15 +6332,16 @@ class Component extends DCLogic {
           '<span style="flex:none;width:1px;background:rgba(120,140,180,0.22);margin:9px 0;"></span>' +
           '<span data-font-a="l" style="flex:1;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#16203a;">А</span></div>' +
           '<div style="height:1px;margin:0 4px 6px;background:linear-gradient(90deg, rgba(120,145,200,0), rgba(120,145,200,0.22) 12%, rgba(120,145,200,0.22) 88%, rgba(120,145,200,0));"></div>' +
-          row('search', ic('<circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path>'), 'Поиск по странице') +
-          row('translate', ic('<circle cx="12" cy="12" r="9"></circle><path d="M3 12h18"></path><path d="M12 3c2.5 2.4 3.8 5.6 3.8 9s-1.3 6.6-3.8 9c-2.5-2.4-3.8-5.6-3.8-9s1.3-6.6 3.8-9z"></path>'), 'Перевести метаресурс', '<span style="font-size:11.5px;font-weight:700;letter-spacing:0.4px;color:#9aa5bb;">RU</span>') +
-          row('security', ic('<path d="M12 3l7 3v5c0 4.4-3 8.4-7 10-4-1.6-7-5.6-7-10V6z"></path><path d="M9.5 12l2 2 3.5-3.5"></path>'), 'Информация о безопасности') +
-          row('deeplink', ic('<rect x="4" y="4" width="16" height="16" rx="4"></rect><path d="M12 9v6M9 12h6"></path>'), 'На рабочий стол') +
-          row('skins', ic('<path d="M12 3a9 9 0 1 0 0 18c1.2 0 2-.9 2-2 0-.6-.2-1-.6-1.4-.3-.4-.5-.8-.5-1.3 0-1.1.9-2 2-2h1.8c2 0 3.3-1.4 3.3-3.3C20 6.5 16.4 3 12 3z"></path>'), 'Скины и стили',
+          row('search', ic('<circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path>', 'rgba(120,150,215,0.22), rgba(120,150,215,0.10)', '#4a6299'), 'Поиск по странице', chev) +
+          row('translate', ic('<circle cx="12" cy="12" r="9"></circle><path d="M3 12h18"></path><path d="M12 3c2.5 2.4 3.8 5.6 3.8 9s-1.3 6.6-3.8 9c-2.5-2.4-3.8-5.6-3.8-9s1.3-6.6 3.8-9z"></path>', 'rgba(124,111,247,0.22), rgba(124,111,247,0.10)', '#5b4fc4'), 'Перевести метаресурс', '<span style="font-size:12px;font-weight:700;letter-spacing:0.4px;color:#95a0b8;">RU</span>') +
+          row('security', ic('<path d="M12 3l7 3v5c0 4.4-3 8.4-7 10-4-1.6-7-5.6-7-10V6z"></path><path d="M9.5 12l2 2 3.5-3.5"></path>', 'rgba(74,178,134,0.22), rgba(74,178,134,0.10)', '#2f7d5c'), 'Информация о безопасности', chev) +
+          row('deeplink', ic('<rect x="4" y="4" width="16" height="16" rx="4"></rect><path d="M12 9v6M9 12h6"></path>', 'rgba(90,150,240,0.22), rgba(90,150,240,0.10)', '#3a6bb8'), 'На рабочий стол') +
+          row('skins', ic('<path d="M12 3a9 9 0 1 0 0 18c1.2 0 2-.9 2-2 0-.6-.2-1-.6-1.4-.3-.4-.5-.8-.5-1.3 0-1.1.9-2 2-2h1.8c2 0 3.3-1.4 3.3-3.3C20 6.5 16.4 3 12 3z"></path>', 'rgba(240,160,120,0.24), rgba(240,160,120,0.10)', '#b3652f'), 'Скины и стили',
             '<span style="display:flex;gap:4px;">' +
             '<span style="width:14px;height:14px;border-radius:50%;background:linear-gradient(140deg,#7c8fd2,#4d6ac2);box-shadow:0 0 0 1.4px rgba(255,255,255,0.9), 0 1px 2px rgba(30,50,90,0.18);"></span>' +
             '<span style="width:14px;height:14px;border-radius:50%;background:linear-gradient(140deg,#1c2b45,#0d1526);box-shadow:0 0 0 1.4px rgba(255,255,255,0.9), 0 1px 2px rgba(30,50,90,0.18);"></span>' +
             '<span style="width:14px;height:14px;border-radius:50%;background:linear-gradient(140deg,#ffd9a8,#f0959e);box-shadow:0 0 0 1.4px rgba(255,255,255,0.9), 0 1px 2px rgba(30,50,90,0.18);"></span></span>');
+        setEl.innerHTML = setEl.innerHTML.replace(/<div style="height:1px;margin:0 10px 0 50px;background:rgba\(120,145,200,0\.16\);"><\/div>$/, '');
         document.body.appendChild(setEl);
         requestAnimationFrame(() => {
           if (!setEl) return;
