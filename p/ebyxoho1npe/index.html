@@ -6633,19 +6633,25 @@ class Component extends DCLogic {
       // ждём, пока иконка реально сядет: при сборке разлётом она в этот момент ещё за краем
       // экрана, и в кэш попадала точка вроде x=-141 — окно ПИНГ улетало мимо дока
       if (on) {
-        const cacheIr = (tries) => {
+        const cacheIr = (tries, prev) => {
+          let key = '';
           try {
             if (!window.__ioDockState) return;
             const lb = wrap.querySelector('[data-left-btn]');
             if (!lb || !window.__ioRectIn) return;
             const r = lb.getBoundingClientRect();
-            const pb = phone ? phone.getBoundingClientRect() : null;
-            const inside = !pb || (r.width > 4 && r.left >= pb.left - 2 && r.right <= pb.right + 2);
-            if (inside || tries <= 0) { window.__ioLeftHomeIr = window.__ioRectIn(lb); return; }
+            key = Math.round(r.left) + ':' + Math.round(r.top);
+            // «села» = нет доигрывающих анимаций И позиция та же, что в прошлой проверке.
+            // Проверки «внутри экрана» мало: на подлёте кнопка формально уже в кадре,
+            // и в кэш попадала промежуточная точка — окно ПИНГ летело мимо иконки
+            const busy = lb.getAnimations().some((a) => {
+              try { const t = a.effect && a.effect.getTiming(); return t && t.iterations !== Infinity && a.playState === 'running'; } catch (e2) { return false; }
+            });
+            if ((!busy && key === prev) || tries <= 0) { window.__ioLeftHomeIr = window.__ioRectIn(lb); return; }
           } catch (e) { return; }
-          setTimeout(() => cacheIr(tries - 1), 120);
+          setTimeout(() => cacheIr(tries - 1, key), 120);
         };
-        setTimeout(() => cacheIr(12), skipAnim ? 30 : 420);
+        setTimeout(() => cacheIr(16, ''), skipAnim ? 30 : 420);
       }
       // синхронно, в этом же кадре: geo() только что переписал style сегментов, и если
       // отложить до rAF, браузер успевает отрисовать «сброшенный» кадр + повторный разлёт
@@ -6766,10 +6772,15 @@ class Component extends DCLogic {
         { transform: 'scale(1.14)', filter: 'blur(20px)' },
         { transform: 'scale(1)', filter: 'blur(0px)' }
       ], { duration: 540, easing: EASE, fill: 'forwards' });
-      icon.animate([
-        { transform: 'scale(0.8)', opacity: 0.35 },
-        { transform: 'scale(1)', opacity: 1 }
-      ], { duration: 380, delay: 180, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' });
+      // у ПИНГ «иконка приложения» — это кнопка дока, transform которой уже ведёт разлёт.
+      // Своя пружинка перебивала его (fill:backwards держал scale с нулевого кадра) —
+      // кнопка выпадала из полёта и прыгала на место. Пружиним только иконки рабочего стола.
+      if (!icon.closest('[data-track-wrap]')) {
+        icon.animate([
+          { transform: 'scale(0.8)', opacity: 0.35 },
+          { transform: 'scale(1)', opacity: 1 }
+        ], { duration: 380, delay: 180, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' });
+      }
       shellAnim.onfinish = () => {
         shell.style.display = 'none';
         shellAnim.cancel();
@@ -6784,11 +6795,13 @@ class Component extends DCLogic {
       icon = document.querySelector(APPS[activeApp].icon) || icon;
       if (busyAnim() || shell.style.display !== 'none') return;
       setAnim(true);
-      icon.animate([
-        { transform: 'scale(1)' },
-        { transform: 'scale(0.94)' },
-        { transform: 'scale(1)' }
-      ], { duration: 160, easing: 'cubic-bezier(.22,1,.36,1)' });
+      if (!icon.closest('[data-track-wrap]')) {
+        icon.animate([
+          { transform: 'scale(1)' },
+          { transform: 'scale(0.94)' },
+          { transform: 'scale(1)' }
+        ], { duration: 160, easing: 'cubic-bezier(.22,1,.36,1)' });
+      }
       setTimeout(() => {
         pillToBar();
         desk.getAnimations().forEach((a) => a.cancel());
@@ -7848,8 +7861,8 @@ class Component extends DCLogic {
         const c2 = (a) => 'rgba(150,190,255,' + a + ')';
         const an = ping.animate([
           { boxShadow: '0 0 0 0px ' + c1(0) + ', 0 0 10px 0px ' + c2(0) },
-          { boxShadow: '0 0 0 1.6px ' + c1(0.6) + ', 0 0 14px 1px ' + c2(0.32), offset: 0.18 },
-          { boxShadow: '0 0 0 4px ' + c1(0.3) + ', 0 0 18px 3px ' + c2(0.17), offset: 0.5 },
+          { boxShadow: '0 0 0 1.4px ' + c1(0.38) + ', 0 0 14px 1px ' + c2(0.2), offset: 0.18 },
+          { boxShadow: '0 0 0 4px ' + c1(0.18) + ', 0 0 18px 3px ' + c2(0.1), offset: 0.5 },
           { boxShadow: '0 0 0 9px ' + c1(0) + ', 0 0 22px 6px ' + c2(0) }
         ], { duration: 1250, easing: 'cubic-bezier(.25,.8,.35,1)' });
         an.onfinish = () => ping.remove();
