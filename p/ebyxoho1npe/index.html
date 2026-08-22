@@ -6310,8 +6310,10 @@ class Component extends DCLogic {
         setEl = document.createElement('div');
         setEl.setAttribute('data-appset-pop', '1');
         setEl.style.cssText = 'position:fixed;left:' + left.toFixed(0) + 'px;bottom:' + popBottom() + 'px;z-index:9999;width:' + W2 + 'px;padding:10px 9px 10px;border-radius:28px;box-sizing:border-box;' +
-          'background:linear-gradient(145deg, #f5f8fd 0%, #e6ecf6 100%);backdrop-filter:blur(16px) saturate(140%);-webkit-backdrop-filter:blur(16px) saturate(140%);' +
-          'box-shadow:-7px -7px 16px rgba(255,255,255,0.9), 9px 11px 28px rgba(58,84,140,0.26), inset 0 0 0 1px rgba(255,255,255,0.6);' +
+          // неоморфизм по природе сливается с фоном: поверхность светлее подложки,
+          // плюс настоящая тень отрыва (контактная + основная + окружающая) и кромка
+          'background:linear-gradient(150deg, #ffffff 0%, #eff4fc 55%, #e8eef8 100%);backdrop-filter:blur(18px) saturate(150%);-webkit-backdrop-filter:blur(18px) saturate(150%);' +
+          'box-shadow:-8px -8px 18px rgba(255,255,255,0.95), 0 2px 5px rgba(40,65,120,0.12), 0 14px 30px rgba(40,65,120,0.26), 0 34px 66px rgba(40,65,120,0.20), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 0 1px rgba(255,255,255,0.7), 0 0 0 1px rgba(120,145,195,0.22);' +
           'opacity:0;transform:translateY(10px) scale(0.6);transform-origin:50% 118%;transition:opacity 200ms ease, transform 480ms cubic-bezier(.22,1.42,.36,1);font-family:Nunito,system-ui,sans-serif;';
         // неоморфный набор: монохром, выпуклые плитки и вдавленный трек.
         // Цветные пастельные подложки убраны — они и делали иконки «дежурными»
