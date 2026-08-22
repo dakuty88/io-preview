@@ -6313,42 +6313,53 @@ class Component extends DCLogic {
         const left = SIDE;
         setEl = document.createElement('div');
         setEl.setAttribute('data-appset-pop', '1');
-        setEl.style.cssText = 'position:fixed;left:' + left.toFixed(0) + 'px;bottom:' + popBottom() + 'px;z-index:9999;width:' + W2 + 'px;padding:10px 9px 10px;border-radius:28px;box-sizing:border-box;' +
+        setEl.style.cssText = 'position:fixed;left:' + left.toFixed(0) + 'px;bottom:' + popBottom() + 'px;z-index:9999;width:' + W2 + 'px;padding:8px;border-radius:22px;box-sizing:border-box;' +
           // неоморфизм по природе сливается с фоном: поверхность светлее подложки,
           // плюс настоящая тень отрыва (контактная + основная + окружающая) и кромка
-          'background:#ffffff;backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);' +
-          'box-shadow:0 2px 6px rgba(24,28,40,0.10), 0 18px 40px rgba(24,28,40,0.20), 0 44px 90px rgba(24,28,40,0.16), inset 0 0 0 1px rgba(24,28,40,0.05);' +
+          'background:rgba(246,246,248,0.80);backdrop-filter:blur(34px) saturate(180%);-webkit-backdrop-filter:blur(34px) saturate(180%);' +
+          'box-shadow:0 1px 3px rgba(0,0,0,0.10), 0 12px 34px rgba(0,0,0,0.20), 0 30px 70px rgba(0,0,0,0.14), inset 0 0 0 0.5px rgba(255,255,255,0.6);' +
           'opacity:0;transform:translateY(10px) scale(0.6);transform-origin:50% 118%;transition:opacity 200ms ease, transform 480ms cubic-bezier(.22,1.42,.36,1);font-family:Nunito,system-ui,sans-serif;';
         // неоморфный набор: монохром, выпуклые плитки и вдавленный трек.
         // Цветные пастельные подложки убраны — они и делали иконки «дежурными»
-        const RAISED = 'background:#f1f3f7;box-shadow:none;';
+        // iOS-меню: сгруппированные блоки со строками и нижний ряд управления
         const DARK_BG = 'linear-gradient(180deg,#3c414c,#1a1d24)';
-        const DARK_SH = '0 6px 14px rgba(18,21,30,0.34), 0 2px 4px rgba(18,21,30,0.20), inset 0 1px 0 rgba(255,255,255,0.14)';
-        const SUNK = 'box-shadow:inset 0 0 0 1px rgba(24,28,40,0.06);';
-        const tile = (id, glyph, label, extra) =>
-          '<div data-set-i="' + id + '" style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:8px;padding:9px 2px 8px;border-radius:18px;cursor:pointer;opacity:0;transform:translateY(9px);transition:box-shadow 200ms ease, opacity 260ms ease, transform 380ms cubic-bezier(.22,1.3,.36,1);">' +
-          '<span data-set-tile="1" style="position:relative;width:46px;height:46px;border-radius:16px;display:flex;align-items:center;justify-content:center;' + RAISED + 'transition:box-shadow 220ms ease, background 220ms ease;">' +
-          '<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#2b303a" stroke-width="1.95" stroke-linecap="round" stroke-linejoin="round" style="transition:stroke 200ms ease;">' + glyph + '</svg>' + (extra || '') + '</span>' +
-          '<span style="font-size:11.5px;font-weight:700;letter-spacing:-0.1px;color:#525965;white-space:nowrap;">' + label + '</span></div>';
+        const DARK_SH = '0 6px 14px rgba(18,21,30,0.34), inset 0 1px 0 rgba(255,255,255,0.14)';
+        const SEP = '<div style="height:0.5px;margin-left:52px;background:rgba(60,60,67,0.20);"></div>';
+        const ic2 = (glyph) => '<span style="flex:none;width:24px;display:flex;align-items:center;justify-content:center;">' +
+          '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1c1c1e" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + glyph + '</svg></span>';
+        const row2 = (id, glyph, label, extra) =>
+          '<div data-set-i="' + id + '" style="display:flex;align-items:center;gap:12px;height:50px;padding:0 14px;cursor:pointer;opacity:0;transform:translateY(8px);transition:background 140ms ease, opacity 240ms ease, transform 360ms cubic-bezier(.22,1.3,.36,1);">' +
+          ic2(glyph) + '<span style="flex:1;min-width:0;font-size:16.5px;font-weight:600;letter-spacing:-0.35px;color:#1c1c1e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + label + '</span>' +
+          (extra || '') + '</div>';
+        const block = (inner) => '<div data-set-row="1" style="border-radius:16px;overflow:hidden;background:rgba(255,255,255,0.74);box-shadow:inset 0 0 0 0.5px rgba(60,60,67,0.10);opacity:0;transform:translateY(8px);transition:opacity 240ms ease, transform 360ms cubic-bezier(.22,1.3,.36,1);">' + inner + '</div>';
         const seg = (v, txt, fs) =>
-          '<span data-font-a="' + v + '" style="flex:1;display:flex;align-items:center;justify-content:center;border-radius:15px;margin:5px;font-size:' + fs + 'px;font-weight:800;color:#8492ac;background:transparent;transition:background 220ms ease, color 220ms ease, box-shadow 220ms ease;">' + txt + '</span>';
+          '<span data-font-a="' + v + '" style="flex:1;display:flex;align-items:center;justify-content:center;margin:5px 4px;border-radius:11px;font-size:' + fs + 'px;font-weight:600;color:#1c1c1e;background:transparent;transition:background 200ms ease, color 200ms ease, box-shadow 200ms ease;">' + txt + '</span>';
+        const sqBtn = (id, glyph) =>
+          '<span data-set-i="' + id + '" style="flex:none;width:56px;display:flex;align-items:center;justify-content:center;height:100%;cursor:pointer;transition:background 140ms ease;">' +
+          '<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#1c1c1e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + glyph + '</svg></span>';
+        const vline = '<span style="flex:none;width:0.5px;margin:9px 0;background:rgba(60,60,67,0.22);"></span>';
         setEl.innerHTML =
-          // верхний ярус — вдавленный трек, выглядывает из-под карточки
-          '<div data-set-row="1" style="margin:0 6px -18px;padding:0 0 20px;height:64px;box-sizing:border-box;display:flex;align-items:flex-start;border-radius:22px;background:#f1f3f7;' + SUNK +
-          'opacity:0;transform:translateY(9px);transition:opacity 260ms ease, transform 380ms cubic-bezier(.22,1.3,.36,1);">' +
-          '<div data-set-i="font" style="flex:1;display:flex;align-items:stretch;height:46px;cursor:pointer;">' +
-          seg('s', 'А', 13) + seg('m', 'Аа', 16) + seg('l', 'А', 21) + '</div></div>' +
-          // нижний ярус — выпуклая карточка поверх трека
-          '<div data-set-row="1" style="position:relative;display:flex;align-items:stretch;gap:1px;padding:6px 5px 5px;border-radius:24px;background:#ffffff;' +
-          'box-shadow:0 2px 5px rgba(24,28,40,0.10), 0 10px 22px rgba(24,28,40,0.14), inset 0 0 0 1px rgba(24,28,40,0.05);' +
-          'opacity:0;transform:translateY(9px);transition:opacity 260ms ease, transform 380ms cubic-bezier(.22,1.3,.36,1);">' +
-          tile('search', '<circle cx="10.5" cy="10.5" r="6.5"></circle><path d="M15.5 15.5L20 20"></path>', 'Поиск') +
-          tile('translate', '<path d="M4 6h9"></path><path d="M8.5 4.5V6"></path><path d="M11 6c-.6 4.2-3.2 7.5-7 9"></path><path d="M6 10.5c1.4 2.6 3.7 4.2 6.5 4.5"></path><path d="M13 20l3.6-8 3.6 8"></path><path d="M14.4 17h4.4"></path>', 'Перевод',
-            '<span data-tr-badge="1" style="position:absolute;right:-5px;top:-4px;padding:1px 4.5px;border-radius:7px;background:linear-gradient(180deg,#3c414c,#1a1d24);box-shadow:0 3px 7px rgba(18,21,30,0.34);font-size:8.5px;font-weight:800;letter-spacing:0.3px;color:#ffffff;">RU</span>') +
-          tile('security', '<path d="M12 3.5l6.5 2.6v4.7c0 4.1-2.8 7.8-6.5 9.2-3.7-1.4-6.5-5.1-6.5-9.2V6.1z"></path><path d="M9.3 12.1l2 2 3.4-3.6"></path>', 'Защита') +
-          tile('deeplink', '<rect x="3.5" y="3.5" width="17" height="17" rx="5"></rect><path d="M12 8.5v7M8.5 12h7"></path>', 'На стол') +
-          tile('skins', '<path d="M12 3.5c-4.7 0-8.5 3.8-8.5 8.5S7.3 20.5 12 20.5c1.2 0 2-.8 2-1.9 0-.5-.2-.9-.5-1.3-.3-.4-.5-.8-.5-1.3 0-1 .8-1.9 1.9-1.9h1.7c2 0 3.4-1.5 3.4-3.5 0-3.7-3.4-6.6-8-6.6z"></path><circle cx="8" cy="10" r="1.1" fill="#2b303a" stroke="none"></circle><circle cx="12" cy="8" r="1.1" fill="#2b303a" stroke="none"></circle><circle cx="15.6" cy="10.4" r="1.1" fill="#2b303a" stroke="none"></circle>', 'Скины') +
-          tile('more', '<circle cx="5.5" cy="12" r="1.7" fill="#2b303a" stroke="none"></circle><circle cx="12" cy="12" r="1.7" fill="#2b303a" stroke="none"></circle><circle cx="18.5" cy="12" r="1.7" fill="#2b303a" stroke="none"></circle>', 'Ещё') +
+          block(
+            row2('search', '<circle cx="10.5" cy="10.5" r="6.5"></circle><path d="M15.5 15.5L20 20"></path>', 'Поиск по странице') + SEP +
+            row2('translate', '<path d="M4 6h9"></path><path d="M8.5 4.5V6"></path><path d="M11 6c-.6 4.2-3.2 7.5-7 9"></path><path d="M6 10.5c1.4 2.6 3.7 4.2 6.5 4.5"></path><path d="M13 20l3.6-8 3.6 8"></path><path d="M14.4 17h4.4"></path>', 'Перевести метаресурс',
+              '<span data-tr-badge="1" style="flex:none;font-size:15px;font-weight:600;letter-spacing:-0.2px;color:rgba(60,60,67,0.5);">RU</span>')
+          ) +
+          '<div style="height:8px;"></div>' +
+          block(
+            row2('security', '<path d="M12 3.5l6.5 2.6v4.7c0 4.1-2.8 7.8-6.5 9.2-3.7-1.4-6.5-5.1-6.5-9.2V6.1z"></path><path d="M9.3 12.1l2 2 3.4-3.6"></path>', 'Информация о безопасности') + SEP +
+            row2('deeplink', '<rect x="3.5" y="3.5" width="17" height="17" rx="5"></rect><path d="M12 8.5v7M8.5 12h7"></path>', 'На рабочий стол') + SEP +
+            row2('skins', '<path d="M12 3.5c-4.7 0-8.5 3.8-8.5 8.5S7.3 20.5 12 20.5c1.2 0 2-.8 2-1.9 0-.5-.2-.9-.5-1.3-.3-.4-.5-.8-.5-1.3 0-1 .8-1.9 1.9-1.9h1.7c2 0 3.4-1.5 3.4-3.5 0-3.7-3.4-6.6-8-6.6z"></path><circle cx="8" cy="10" r="1.1" fill="#1c1c1e" stroke="none"></circle><circle cx="12" cy="8" r="1.1" fill="#1c1c1e" stroke="none"></circle><circle cx="15.6" cy="10.4" r="1.1" fill="#1c1c1e" stroke="none"></circle>', 'Скины и стили',
+              '<span style="flex:none;display:flex;gap:5px;">' +
+              '<span style="width:15px;height:15px;border-radius:50%;background:linear-gradient(140deg,#7c8fd2,#4d6ac2);box-shadow:0 0 0 1.4px rgba(255,255,255,0.9);"></span>' +
+              '<span style="width:15px;height:15px;border-radius:50%;background:linear-gradient(140deg,#1c2b45,#0d1526);box-shadow:0 0 0 1.4px rgba(255,255,255,0.9);"></span>' +
+              '<span style="width:15px;height:15px;border-radius:50%;background:linear-gradient(140deg,#ffd9a8,#f0959e);box-shadow:0 0 0 1.4px rgba(255,255,255,0.9);"></span></span>')
+          ) +
+          '<div style="height:8px;"></div>' +
+          // нижний ряд управления, как в Safari: кнопка · размер шрифта · ещё
+          '<div data-set-row="1" style="display:flex;align-items:stretch;height:52px;border-radius:16px;overflow:hidden;background:rgba(255,255,255,0.74);box-shadow:inset 0 0 0 0.5px rgba(60,60,67,0.10);opacity:0;transform:translateY(8px);transition:opacity 240ms ease, transform 360ms cubic-bezier(.22,1.3,.36,1);">' +
+          sqBtn('cert', '<rect x="4" y="3.5" width="16" height="17" rx="3.5"></rect><path d="M8 9h8M8 13h5"></path><circle cx="16" cy="16" r="2.6"></circle><path d="M18 18l2 2"></path>') + vline +
+          '<div data-set-i="font" style="flex:1;display:flex;align-items:stretch;cursor:pointer;">' + seg('s', 'A', 14) + vline + seg('l', 'A', 21) + '</div>' + vline +
+          sqBtn('more', '<circle cx="5.5" cy="12" r="1.7" fill="#1c1c1e" stroke="none"></circle><circle cx="12" cy="12" r="1.7" fill="#1c1c1e" stroke="none"></circle><circle cx="18.5" cy="12" r="1.7" fill="#1c1c1e" stroke="none"></circle>') +
           '</div>';
         // лёгкая вуаль под панелью — она отрывает её от фона надёжнее любой тени
         const veil = document.createElement('div');
@@ -6380,21 +6391,22 @@ class Component extends DCLogic {
         };
         // РАЗМЕР ШРИФТА — функциональный: zoom контента (s 0.92 / l 1.12),
         // повторный тап по выбранному — сброс к 1
-        const FONT_PILL = 'linear-gradient(180deg,#3c414c,#1a1d24)';
+        const FONT_PILL = '#ffffff';
         const markFont = (which) => {
           setEl.querySelectorAll('[data-font-a]').forEach((f2) => {
             const on = f2.getAttribute('data-font-a') === which;
             f2.style.background = on ? FONT_PILL : 'transparent';
-            f2.style.boxShadow = on ? '0 5px 12px rgba(18,21,30,0.32), 0 2px 4px rgba(18,21,30,0.18), inset 0 1px 0 rgba(255,255,255,0.14)' : 'none';
-            f2.style.color = on ? '#ffffff' : '#8a919e';
+            f2.style.boxShadow = on ? '0 3px 8px rgba(0,0,0,0.12), 0 0 0 0.5px rgba(0,0,0,0.04)' : 'none';
+            f2.style.color = '#1c1c1e';
           });
         };
         const applyFont = (which) => {
           const root2 = setRoot();
           if (!root2) return;
-          const target = which === 's' ? 0.92 : which === 'l' ? 1.12 : 1;
-          root2.style.zoom = target === 1 ? '' : String(target);
-          markFont(which);
+          const target = which === 's' ? 0.92 : 1.12;
+          const same = Math.abs((parseFloat(root2.style.zoom) || 1) - target) < 0.01;
+          root2.style.zoom = same ? '' : String(target);
+          markFont(same ? '' : which);
         };
         // ПЕРЕВОД — функциональный: двунаправленный словарь по видимым текстам
         const TR_PAIRS = [
@@ -6446,21 +6458,13 @@ class Component extends DCLogic {
           e2.stopPropagation();
           const sid = it.getAttribute('data-set-i');
           if (sid === 'translate') translateNow();
-          if (sid === 'security') showCert();
-          const tl = it.querySelector('[data-set-tile]');
-          const gl = tl && tl.querySelector('svg');
-          const setDark = (on4) => {
-            if (!tl) return;
-            tl.style.background = on4 ? DARK_BG : '';
-            tl.style.boxShadow = on4 ? DARK_SH : '';
-            if (gl) { gl.setAttribute('stroke', on4 ? '#ffffff' : '#2b303a');
-              gl.querySelectorAll('[fill]').forEach((f4) => f4.setAttribute('fill', on4 ? '#ffffff' : '#2b303a')); }
-          };
+          if (sid === 'security' || sid === 'cert') showCert();
+          const setDark = (on4) => { it.style.background = on4 ? 'rgba(60,60,67,0.14)' : ''; };
           setDark(true);
           it.__setDark = setDark;
           if (window.__ioHaptic) window.__ioHaptic('light');
-          // «Защита» держится тёмной, пока открыта карточка сертификата
-          setTimeout(() => { if (setEl && !(sid === 'security' && document.querySelector('[data-cert-card]'))) setDark(false); }, 450);
+          // строка сертификата подсвечена, пока карточка открыта
+          setTimeout(() => { if (setEl && !((sid === 'security' || sid === 'cert') && document.querySelector('[data-cert-card]'))) setDark(false); }, 420);
         });
         // СЕРТИФИКАТ БЕЗОПАСНОСТИ метаресурса — карточка над панелью
         const showCert = () => {
@@ -6519,7 +6523,7 @@ class Component extends DCLogic {
         (() => {
           const root2 = setRoot();
           const z = root2 ? (parseFloat(root2.style.zoom) || 1) : 1;
-          markFont(Math.abs(z - 0.92) < 0.01 ? 's' : Math.abs(z - 1.12) < 0.01 ? 'l' : 'm');
+          markFont(Math.abs(z - 0.92) < 0.01 ? 's' : Math.abs(z - 1.12) < 0.01 ? 'l' : '');
         })();
         const me2 = setEl;
         setTimeout(() => {
