@@ -7830,18 +7830,18 @@ class Component extends DCLogic {
         'left:' + (r.left - hr.left).toFixed(1) + 'px;top:' + (r.top - hr.top).toFixed(1) + 'px;' +
         'width:' + r.width.toFixed(1) + 'px;height:' + r.height.toFixed(1) + 'px;' +
         'border-radius:' + getComputedStyle(el).borderTopLeftRadius + ';' +
-        'box-shadow:inset 0 0 0 2px rgba(232,243,255,1), 0 0 24px 3px rgba(140,185,255,0.7);opacity:0;';
+        'box-shadow:inset 0 0 0 1.2px rgba(234,244,255,0.9), 0 0 20px 2px rgba(150,190,255,0.38);opacity:0;';
       el.insertAdjacentElement('afterend', ping);
       try {
         const an = ping.animate([
-          { transform: 'scale(0.99)', opacity: 0 },
-          { transform: 'scale(1.008)', opacity: 1, offset: 0.18 },
-          { transform: 'scale(1.028)', opacity: 0.85, offset: 0.44 },
-          { transform: 'scale(1.075)', opacity: 0 }
-        ], { duration: 780, easing: 'cubic-bezier(.22,1,.36,1)' });
+          { transform: 'scale(0.992)', opacity: 0 },
+          { transform: 'scale(1.006)', opacity: 0.55, offset: 0.16 },
+          { transform: 'scale(1.022)', opacity: 0.42, offset: 0.46 },
+          { transform: 'scale(1.058)', opacity: 0 }
+        ], { duration: 1250, easing: 'cubic-bezier(.25,.8,.35,1)' });
         an.onfinish = () => ping.remove();
       } catch (e) {}
-      setTimeout(() => { if (ping.isConnected) ping.remove(); }, 2200);   // страховка от утечки
+      setTimeout(() => { if (ping.isConnected) ping.remove(); }, 2600);   // страховка от утечки
     };
     window.__ioReadyPing = readyPing;
     // разлёт/сбор дока — тот же язык движения, что при свайпе вправо
