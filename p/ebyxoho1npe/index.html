@@ -6795,15 +6795,19 @@ class Component extends DCLogic {
       w2.style.pointerEvents = hid ? 'none' : '';
     };
     window.__ioDockMode = (on, skipAnim, noBurst) => {
-      if (window.__ioDockState === !!on) return;
+      // сверяемся и с состоянием, и с последним УСПЕШНО отрисованным режимом: если
+      // отрисовка однажды сорвалась, док обязан догнать состояние, а не замереть
+      if (window.__ioDockState === !!on && window.__ioDockRendered === !!on) return;
       window.__ioDockState = !!on;
-      // режим дока сменился — пересчитываем «чатовое» состояние пилюли
-      if (window.__ioChatDockSync) window.__ioChatDockSync();
+      // режим дока сменился — пересчитываем «чатовое» состояние пилюли.
+      // строго в try: исключение здесь оборвало бы функцию ДО отрисовки, а состояние
+      // уже переписано — следующий вызов вышел бы по проверке выше, и док застрял бы
+      try { if (window.__ioChatDockSync) window.__ioChatDockSync(); } catch (e) {}
       // меню меняются языком свайпа: иконки разлетаются, состав меняется за кадром, иконки собираются.
       // поверх уже идущего разлёта (запись, скан) второй не наслаиваем — иначе полёт дёргается
       const burstOn = window.__ioBurstUntil && performance.now() < window.__ioBurstUntil;
       if (skipAnim || noBurst || burstOn || window.__ioDockHidden || !window.__ioDockBurst) {
-        try { homeIcons(on, skipAnim); } catch (e) {}
+        try { homeIcons(on, skipAnim); window.__ioDockRendered = !!on; } catch (e) {}
         return;
       }
       // стекло уходящего меню гасим ВМЕСТЕ с иконками, а не в момент подмены: иначе оно
@@ -6829,7 +6833,7 @@ class Component extends DCLogic {
         // подмена состава — мгновенная (морф с транзишенами под летящими иконками даёт дрейф ширин)
         const wrapS = document.querySelector('[data-track-wrap]');
         const segsS = wrapS ? Array.prototype.slice.call(wrapS.querySelectorAll('[data-seg]')) : [];
-        try { homeIcons(on, true); } catch (e) {}
+        try { homeIcons(on, true); window.__ioDockRendered = !!on; } catch (e) {}
         segsS.forEach((sg) => {
           if (sg.__bgAnim) { try { sg.__bgAnim.cancel(); } catch (e) {} sg.__bgAnim = null; }
           const to = getComputedStyle(sg).backgroundColor;
@@ -6848,7 +6852,7 @@ class Component extends DCLogic {
         try { window.__ioDockBurst(false, 0.86, { keepPill: 1, homeMode: on }); } catch (e) {}
       }, 300);
     };
-    if (!window.__ioBooted) { window.__ioBooted = 1; shell.style.display = 'none'; window.__ioDockState = true; homeIcons(true, true); }
+    if (!window.__ioBooted) { window.__ioBooted = 1; shell.style.display = 'none'; window.__ioDockState = true; window.__ioDockRendered = true; homeIcons(true, true); }
     const pillToDock = () => window.__ioDockMode(true);
     const pillToBar = () => window.__ioDockMode(false);
     const rectIn = (el) => {
