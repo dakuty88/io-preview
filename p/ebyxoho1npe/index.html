@@ -6795,6 +6795,8 @@ class Component extends DCLogic {
     window.__ioDockMode = (on, skipAnim, noBurst) => {
       if (window.__ioDockState === !!on) return;
       window.__ioDockState = !!on;
+      // режим дока сменился — пересчитываем «чатовое» состояние пилюли
+      if (window.__ioChatDockSync) window.__ioChatDockSync();
       // меню меняются языком свайпа: иконки разлетаются, состав меняется за кадром, иконки собираются.
       // поверх уже идущего разлёта (запись, скан) второй не наслаиваем — иначе полёт дёргается
       const burstOn = window.__ioBurstUntil && performance.now() < window.__ioBurstUntil;
@@ -8778,7 +8780,7 @@ class Component extends DCLogic {
       syncDock.__t = requestAnimationFrame(() => {
         syncDock.__t = null;
         // до всех ранних выходов: иначе в приложении док остаётся в «чатовом» состоянии
-        chatDock(!!document.querySelector('[data-chat-card]:not([data-closing])'));
+        chatDockSync();
         const sh = q('[data-app-shell]');
         if (sh && sh.style.display !== 'none') return;
         const capsuleUp = rec && rec.style.opacity === '1';
@@ -8985,6 +8987,10 @@ class Component extends DCLogic {
       paintPulses();
       if (!on) closeModeMenu();
     };
+    // пилюля-переключатель живёт только при открытом чате И доке в режиме приложения:
+    // из ПИНГа чат открывался поверх домашнего дока, и получался гибрид
+    const chatDockSync = () => chatDock(!window.__ioDockState && !!document.querySelector('[data-chat-card]:not([data-closing])'));
+    window.__ioChatDockSync = chatDockSync;
     window.__ioSyncDock = syncDock;
     window.__ioBackToDesktop = () => { try { if (chatEl) closeChat(); } catch (e) {} try { openLive(false); } catch (e) {} };
     // чат мог остаться в скрытом контейнере приложения — тогда считаем его закрытым
