@@ -9486,7 +9486,13 @@ class Component extends DCLogic {
           const mta = SIDE_APPS[k];
           const kids = SIDE_CHATS.filter((x) => x.app === k);
           return '<div data-side-i="1" data-side-folder="' + k + '" style="opacity:0;transform:translateX(-16px);display:flex;align-items:center;gap:14px;padding:9px 2px;cursor:pointer;">' +
-            '<span style="flex:none;width:30px;height:30px;border-radius:9px;overflow:hidden;box-shadow:0 1px 3px rgba(30,50,90,0.2), 0 0 0 0.5px rgba(150,162,188,0.3);"><img src="' + window.__ioAsset(mta[0]) + '" style="width:100%;height:100%;object-fit:cover;display:block;"></span>' +
+            // у Ассистента — тот же кружок iO, что в доке у профиля, а не картинка-аватар
+            (k === 'io'
+              ? '<span style="flex:none;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;' +
+                'background:radial-gradient(circle at 50% 38%, #f4f9ff 0%, #e6effa 70%, #dde8f6 100%);' +
+                'box-shadow:0 0 0 0.9px rgba(104,126,168,0.5), inset 0 1px 0 rgba(255,255,255,0.9), 0 1px 3px rgba(40,60,100,0.16);' +
+                'font-family:Nunito,system-ui,sans-serif;font-weight:700;font-size:12.5px;letter-spacing:-0.3px;color:#4a5a76;line-height:1;">iO</span>'
+              : '<span style="flex:none;width:30px;height:30px;border-radius:9px;overflow:hidden;box-shadow:0 1px 3px rgba(30,50,90,0.2), 0 0 0 0.5px rgba(150,162,188,0.3);"><img src="' + window.__ioAsset(mta[0]) + '" style="width:100%;height:100%;object-fit:cover;display:block;"></span>') +
             '<span style="flex:1;font-size:16px;font-weight:600;color:#141b2c;">' + mta[1] + '</span>' +
             '<span style="flex:none;font-size:12.5px;font-weight:700;color:#9aa7bd;">' + kids.length + '</span>' +
             '<svg data-folder-chev="1" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9aa7bd" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex:none;transition:transform 320ms cubic-bezier(.22,1,.36,1);"><path d="M9 5l7 7-7 7"></path></svg>' +
