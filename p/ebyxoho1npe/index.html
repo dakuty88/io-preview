@@ -3572,6 +3572,11 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   }
   /* жесты капсулы и дока — свои: браузеру не отдаём ни скролл, ни double-tap zoom */
   [data-knob], [data-track-wrap], [data-pill-wrap] { touch-action: none; }
+  /* иконки-картинки в доке сливались с плашкой: тонкая кромка, как у кружка iO.
+     в режиме рабочего стола geo() пишет box-shadow:none инлайном и гасит её сам */
+  [data-left-btn], [data-shop-btn] {
+    box-shadow: 0 0 0 0.9px rgba(104,126,168,0.42), 0 1px 3px rgba(40,60,100,0.14);
+  }
   a { color: #7db2ff; }
   a:hover { color: #ffffff; }
   @keyframes micPulse {
