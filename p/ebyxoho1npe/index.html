@@ -8916,7 +8916,9 @@ class Component extends DCLogic {
         if (on && !orb) {
           orb = document.createElement('span');
           orb.setAttribute('data-profile-orb', '1');
-          orb.style.cssText = KNOB_SKIN + 'position:absolute;left:0;top:0;width:36px;height:36px;' +
+          // на плашке дока кружок почти сливался — тонкая кромка чуть плотнее общей шкурки
+          orb.style.cssText = KNOB_SKIN + 'box-shadow:0 0 0 0.9px rgba(104,126,168,0.5), inset 0 1px 0 rgba(255,255,255,0.9), 0 1px 3px rgba(40,60,100,0.16);' +
+            'position:absolute;left:0;top:0;width:36px;height:36px;' +
             'font-family:Nunito,system-ui,sans-serif;font-weight:700;font-size:15px;letter-spacing:-0.3px;color:#4a5a76;line-height:1;' +
             'opacity:0;transition:opacity 240ms ease;';
           orb.textContent = 'iO';
