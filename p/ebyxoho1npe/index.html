@@ -6223,24 +6223,28 @@ class Component extends DCLogic {
         if (!items.length) return;
         histEl = document.createElement('div');
         histEl.setAttribute('data-recent-pop', '1');
-        histEl.style.cssText = 'position:fixed;left:' + Math.max(10, br.left - 8).toFixed(0) + 'px;bottom:' + popBottom() + 'px;z-index:9999;min-width:216px;padding:10px 8px 8px;border-radius:20px;' +
-          'background:linear-gradient(168deg, rgba(255,255,255,0.97) 0%, rgba(240,246,255,0.94) 100%);backdrop-filter:blur(20px) saturate(150%);-webkit-backdrop-filter:blur(20px) saturate(150%);' +
-          'box-shadow:inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 0 0.6px rgba(255,255,255,0.5), 0 0 0 1px rgba(128,148,190,0.42), 0 16px 40px rgba(30,50,90,0.28);' +
+        histEl.style.cssText = 'position:fixed;left:' + Math.max(10, br.left - 8).toFixed(0) + 'px;bottom:' + popBottom() + 'px;z-index:9999;width:250px;padding:8px;border-radius:22px;' +
+          'background:linear-gradient(180deg, rgba(219,225,240,0.86) 0%, rgba(208,216,234,0.84) 100%);backdrop-filter:blur(34px) saturate(180%);-webkit-backdrop-filter:blur(34px) saturate(180%);' +
+          'box-shadow:inset 0 0 0 0.5px rgba(255,255,255,0.5), 0 1px 2px rgba(30,50,90,0.06), 0 10px 30px rgba(30,50,90,0.14);' +
           'opacity:0;transform:translateY(10px) scale(0.55);transform-origin:12% 100%;transition:opacity 200ms ease, transform 480ms cubic-bezier(.22,1.42,.36,1);font-family:Nunito,system-ui,sans-serif;';
+        // тот же сгруппированный iOS-стиль, что и в меню настроек: единый блок, разделители с отступом
+        const HSEP = '<div style="height:0.5px;margin-left:50px;background:rgba(60,60,67,0.12);"></div>';
         histEl.innerHTML =
-          '<div style="font-size:11px;font-weight:800;letter-spacing:0.6px;text-transform:uppercase;color:#8a97b2;padding:0 8px 7px;">Недавние</div>' +
-          items.map((x) => {
+          '<div style="font-size:11px;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;color:#7c869c;padding:3px 10px 7px;">Недавние</div>' +
+          '<div style="border-radius:16px;overflow:hidden;background:rgba(250,251,254,0.66);box-shadow:inset 0 0 0 0.5px rgba(255,255,255,0.5);">' +
+          items.map((x, xi) => {
             const mta = APP_META[x.app];
             // iO в истории — фирменный шарик-орб, не картинка
             const iconHtml = x.app === 'io'
-              ? '<span style="flex:none;width:27px;height:27px;border-radius:50%;background:radial-gradient(circle at 38% 30%, #ffffff 0%, #eaf1fd 40%, #d9e2fb 75%, #e3dcfb 100%);box-shadow:0 0 8px rgba(90,155,247,0.45), 0 1px 4px rgba(47,124,246,0.2), inset 0 1px 0 rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center;font-family:Nunito,system-ui,sans-serif;font-weight:800;font-size:10px;letter-spacing:-0.3px;color:#4a5a76;">iO</span>'
-              : '<img src="' + mta[0] + '" style="width:27px;height:27px;border-radius:8px;object-fit:cover;box-shadow:0 1px 4px rgba(30,50,90,0.2);">';
+              ? '<span style="flex:none;width:26px;height:26px;border-radius:50%;background:radial-gradient(circle at 38% 30%, #ffffff 0%, #eaf1fd 40%, #d9e2fb 75%, #e3dcfb 100%);box-shadow:0 0 6px rgba(90,155,247,0.3), inset 0 1px 0 rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center;font-family:Nunito,system-ui,sans-serif;font-weight:800;font-size:10px;letter-spacing:-0.3px;color:#4a5a76;">iO</span>'
+              : '<img src="' + mta[0] + '" style="width:26px;height:26px;border-radius:8px;object-fit:cover;box-shadow:0 1px 3px rgba(30,50,90,0.14);">';
             // строки влетают каскадом после раскрытия окна
-            return '<div data-hist-item="' + x.app + '" style="display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:13px;cursor:pointer;opacity:0;transform:translateY(9px) scale(0.94);transition:background 160ms ease, opacity 260ms ease, transform 380ms cubic-bezier(.22,1.3,.36,1);">' +
+            return (xi ? HSEP : '') +
+              '<div data-hist-item="' + x.app + '" style="display:flex;align-items:center;gap:12px;height:50px;padding:0 12px;cursor:pointer;opacity:0;transform:translateY(9px) scale(0.94);transition:background 160ms ease, opacity 260ms ease, transform 380ms cubic-bezier(.22,1.3,.36,1);">' +
               iconHtml +
-              '<span style="flex:1;font-size:14px;font-weight:700;color:#1b2340;">' + mta[1] + '</span>' +
-              '<span style="font-size:11.5px;font-weight:600;color:#98a1b3;white-space:nowrap;">' + fmtAgo(x.t) + '</span></div>';
-          }).join('');
+              '<span style="flex:1;font-size:16px;font-weight:600;color:#2c313a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + mta[1] + '</span>' +
+              '<span style="font-size:13px;font-weight:500;color:#8a93a5;white-space:nowrap;">' + fmtAgo(x.t) + '</span></div>';
+          }).join('') + '</div>';
         document.body.appendChild(histEl);
         requestAnimationFrame(() => {
           if (!histEl) return;
@@ -6251,6 +6255,10 @@ class Component extends DCLogic {
           });
         });
         if (window.__ioHaptic) window.__ioHaptic('light');
+        // подсветка нажатия — как в меню настроек
+        const histLift = () => histEl && histEl.querySelectorAll('[data-hist-item]').forEach((r) => { r.style.background = 'transparent'; });
+        histEl.addEventListener('pointerdown', (e3) => { const it3 = e3.target.closest('[data-hist-item]'); if (it3) it3.style.background = 'rgba(60,60,67,0.10)'; });
+        ['pointerup', 'pointercancel', 'pointerleave'].forEach((ev3) => histEl.addEventListener(ev3, histLift));
         histEl.addEventListener('click', (e2) => {
           const it = e2.target.closest('[data-hist-item]');
           if (!it) return;
@@ -6307,10 +6315,13 @@ class Component extends DCLogic {
         closeSet(); closeHist();
         const btn = document.querySelector('[data-mid-sliders]');
         if (!btn) return;
-        // панель во всю ширину: узкая карточка наезжала на композер чата, который шире её
+        // панель во всю ширину ЭКРАНА ТЕЛЕФОНА, а не окна браузера: на широком вьюпорте
+        // window.innerWidth растягивал её далеко за корпус
         const SIDE = 8;
-        const W2 = Math.max(280, window.innerWidth - SIDE * 2);
-        const left = SIDE;
+        const phEl = document.querySelector('[data-phone]');
+        const phR = phEl ? phEl.getBoundingClientRect() : { left: 0, width: window.innerWidth };
+        const W2 = Math.max(260, Math.round(phR.width) - SIDE * 2);
+        const left = Math.round(phR.left) + SIDE;
         setEl = document.createElement('div');
         setEl.setAttribute('data-appset-pop', '1');
         setEl.style.cssText = 'position:fixed;left:' + left.toFixed(0) + 'px;bottom:' + popBottom() + 'px;z-index:9999;width:' + W2 + 'px;padding:8px;border-radius:22px;box-sizing:border-box;' +
@@ -8815,10 +8826,10 @@ class Component extends DCLogic {
         '<div style="margin-top:8px;">А ещё адаптирую ответы под твою цель и стиль общения.</div>';
       c.innerHTML = '<div data-chat-card="1" style="position:absolute;inset:0;overflow:hidden;pointer-events:auto;background:linear-gradient(180deg,#d9e1f0 0%,#e2e9f5 46%,#eef2fa 100%);box-shadow:0 10px 40px rgba(30,50,100,0.18);transform:scale(0.06);border-radius:400px;opacity:0;filter:blur(10px);transition:transform 620ms cubic-bezier(.22,1,.36,1), border-radius 620ms cubic-bezier(.22,1,.36,1), opacity 340ms ease, filter 480ms ease;transform-origin:' + okx + ' ' + oky + ';display:flex;flex-direction:column;font-family:Nunito,system-ui,sans-serif;">' +
         '<div style="flex:none;display:flex;align-items:center;justify-content:space-between;padding:64px 20px 6px;">' +
-        '<span data-chat-menu="1" style="width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.85);box-shadow:0 1px 4px rgba(30,50,90,0.1);display:flex;align-items:center;justify-content:center;cursor:pointer;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1c2438" stroke-width="2" stroke-linecap="round"><path d="M4 7h9M4 12h16M4 17h9"></path></svg></span>' +
+        '<span data-chat-menu="1" style="width:40px;height:40px;border-radius:50%;background:rgba(250,251,254,0.55);backdrop-filter:blur(14px) saturate(160%);-webkit-backdrop-filter:blur(14px) saturate(160%);box-shadow:inset 0 0 0 0.5px rgba(255,255,255,0.55), 0 1px 3px rgba(30,50,90,0.07);display:flex;align-items:center;justify-content:center;cursor:pointer;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4a515c" stroke-width="2" stroke-linecap="round"><path d="M4 7h9M4 12h16M4 17h9"></path></svg></span>' +
         '<span style="display:flex;align-items:center;gap:10px;">' +
-        '<span data-chat-new="1" style="width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.85);box-shadow:0 1px 4px rgba(30,50,90,0.1);display:flex;align-items:center;justify-content:center;cursor:pointer;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1c2438" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg></span>' +
-        '<span data-chat-more="1" style="width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.85);box-shadow:0 1px 4px rgba(30,50,90,0.1);display:flex;align-items:center;justify-content:center;cursor:pointer;"><svg width="18" height="18" viewBox="0 0 24 24" fill="#1c2438"><circle cx="5" cy="12" r="1.8"></circle><circle cx="12" cy="12" r="1.8"></circle><circle cx="19" cy="12" r="1.8"></circle></svg></span>' +
+        '<span data-chat-new="1" style="width:40px;height:40px;border-radius:50%;background:rgba(250,251,254,0.55);backdrop-filter:blur(14px) saturate(160%);-webkit-backdrop-filter:blur(14px) saturate(160%);box-shadow:inset 0 0 0 0.5px rgba(255,255,255,0.55), 0 1px 3px rgba(30,50,90,0.07);display:flex;align-items:center;justify-content:center;cursor:pointer;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4a515c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg></span>' +
+        '<span data-chat-more="1" style="width:40px;height:40px;border-radius:50%;background:rgba(250,251,254,0.55);backdrop-filter:blur(14px) saturate(160%);-webkit-backdrop-filter:blur(14px) saturate(160%);box-shadow:inset 0 0 0 0.5px rgba(255,255,255,0.55), 0 1px 3px rgba(30,50,90,0.07);display:flex;align-items:center;justify-content:center;cursor:pointer;"><svg width="18" height="18" viewBox="0 0 24 24" fill="#4a515c"><circle cx="5" cy="12" r="1.8"></circle><circle cx="12" cy="12" r="1.8"></circle><circle cx="19" cy="12" r="1.8"></circle></svg></span>' +
         '</span>' +
         '</div>' +
         '<div data-chat-msgs="1" style="flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;display:flex;flex-direction:column;gap:18px;padding:14px 20px 16px;">' +
