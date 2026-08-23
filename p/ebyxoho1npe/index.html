@@ -3754,6 +3754,13 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     40%  { box-shadow: 0 0 0 10px rgba(96,170,255,0), 0 1px 3px rgba(40,60,100,0.14), 0 0 16px rgba(96,170,255,0.75); }
     100% { box-shadow: 0 0 0 0 rgba(96,170,255,0), 0 1px 3px rgba(40,60,100,0.14); }
   }
+  /* одна лёгкая волна вдоль всей капсулы вместо трёх тонких колец */
+  @keyframes modeSweep {
+    0%   { transform: translateX(-135%); opacity: 0; }
+    18%  { opacity: 1; }
+    72%  { opacity: 1; }
+    100% { transform: translateX(135%); opacity: 0; }
+  }
   @keyframes ioTapRing {
     0%   { transform: translate(-50%,-50%) scale(0.85); opacity: 0.95; }
     100% { transform: translate(-50%,-50%) scale(2.1); opacity: 0; }
@@ -8808,13 +8815,28 @@ class Component extends DCLogic {
     const paintPulses = () => {
       const host = q('[data-pulses]');
       if (!host) return;
-      const rgb = chatDock.__on ? (MODE_WAVE[window.__ioMode] || MODE_WAVE.local) : '255,255,255';
-      const a = chatDock.__on ? RING_A : [0.9, 0.62, 0.4];
+      const on = chatDock.__on;
+      // в режиме выбора три кольца уступают место одной волне вдоль капсулы
       host.querySelectorAll('[data-pulse-ring]').forEach((el) => {
         const i = +el.getAttribute('data-pulse-ring');
-        el.style.borderColor = 'rgba(' + rgb + ',' + a[i] + ')';
+        el.style.borderColor = 'rgba(255,255,255,' + [0.9, 0.62, 0.4][i] + ')';
         el.style.borderWidth = RING_W[i] + 'px';
+        el.style.display = on ? 'none' : '';
       });
+      let sw = host.querySelector('[data-mode-sweep]');
+      if (on && !sw) {
+        sw = document.createElement('span');
+        sw.setAttribute('data-mode-sweep', '1');
+        sw.style.cssText = 'position:absolute;left:0;top:0;bottom:0;width:58%;pointer-events:none;' +
+          'filter:blur(5px);will-change:transform,opacity;animation:modeSweep 4.4s cubic-bezier(.45,0,.35,1) infinite;';
+        host.appendChild(sw);
+      }
+      if (sw) {
+        const rgb = MODE_WAVE[window.__ioMode] || MODE_WAVE.local;
+        sw.style.background = 'linear-gradient(90deg, rgba(' + rgb + ',0) 0%, rgba(' + rgb + ',0.34) 46%, rgba(' + rgb + ',0.42) 56%, rgba(' + rgb + ',0) 100%)';
+        sw.style.display = on ? '' : 'none';
+        if (!on) { clearTimeout(sw.__rmT); sw.__rmT = setTimeout(() => { if (!chatDock.__on) try { sw.remove(); } catch (e) {} }, 200); }
+      }
     };
     let modeMenu = null, modeCloser = null;
     const closeModeMenu = () => {
@@ -8908,6 +8930,13 @@ class Component extends DCLogic {
       b.addEventListener('pointerdown', (e) => {
         e.stopPropagation();
         e.preventDefault();
+        // тот же отклик, что у капсулы: желе + вспышка кромкой
+        b.style.animation = 'none';
+        void b.offsetWidth;
+        b.style.animation = 'ioTapJelly 460ms cubic-bezier(.22,1,.36,1), ioTapGlow 540ms ease-out';
+        clearTimeout(b.__tapT);
+        b.__tapT = setTimeout(() => { b.style.animation = 'none'; }, 560);
+        if (window.__ioHaptic) window.__ioHaptic('light');
         if (modeMenu) closeModeMenu(); else openModeMenu();
       }, true);
       return b;
