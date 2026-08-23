@@ -6803,6 +6803,10 @@ class Component extends DCLogic {
       // строго в try: исключение здесь оборвало бы функцию ДО отрисовки, а состояние
       // уже переписано — следующий вызов вышел бы по проверке выше, и док застрял бы
       try { if (window.__ioChatDockSync) window.__ioChatDockSync(); } catch (e) {}
+      // отменяем ЗАВИСШУЮ подмену состава от предыдущего вызова до всех ветвлений:
+      // быстрая ветка ниже рисует состав сразу и раньше выходила, не сняв старый
+      // таймер, — тот срабатывал следом и возвращал доку прежний режим
+      clearTimeout(window.__ioModeSwapT);
       // меню меняются языком свайпа: иконки разлетаются, состав меняется за кадром, иконки собираются.
       // поверх уже идущего разлёта (запись, скан) второй не наслаиваем — иначе полёт дёргается
       const burstOn = window.__ioBurstUntil && performance.now() < window.__ioBurstUntil;
@@ -6828,7 +6832,6 @@ class Component extends DCLogic {
         try { sg.__bgAnim = sg.animate([kf(from, bfNow), kf(CLEAR, 'blur(0px)')], { duration: 230, easing: 'ease', fill: 'forwards' }); } catch (e) {}
       });
       try { window.__ioDockBurst(true, 0.62, { keepPill: 1, homeMode: window.__ioDockState }); } catch (e) {}
-      clearTimeout(window.__ioModeSwapT);
       window.__ioModeSwapT = setTimeout(() => {
         // подмена состава — мгновенная (морф с транзишенами под летящими иконками даёт дрейф ширин)
         const wrapS = document.querySelector('[data-track-wrap]');
