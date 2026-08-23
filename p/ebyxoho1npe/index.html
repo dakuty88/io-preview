@@ -9124,7 +9124,7 @@ class Component extends DCLogic {
       if (!mpEl) return;
       const m = mpEl; mpEl = null;
       const sheet = m.querySelector('[data-mp-sheet]');
-      if (sheet) sheet.style.transform = 'translateY(100%)';
+      if (sheet) sheet.style.transform = 'translateY(calc(100% + 96px))';
       m.style.background = 'rgba(10,16,32,0)';
       setTimeout(() => { try { m.remove(); } catch (e) {} }, 460);
     };
@@ -9225,15 +9225,19 @@ class Component extends DCLogic {
           '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#111319" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:1px;">' + c[0] + '</svg>' +
           '<span style="flex:1;font-size:14.5px;color:#111319;line-height:1.35;">' + c[1] + '</span>' + MP.chev + '</div>').join(''));
       m.innerHTML =
-        '<div data-mp-sheet="1" style="position:absolute;left:0;right:0;top:0;bottom:0;background:#f2f3f7;display:flex;flex-direction:column;' +
-        'transform:translateY(100%);transition:transform 520ms cubic-bezier(.22,1,.36,1);">' +
+        // это не полноэкранный экран, а доп-окно: снизу упирается в плашку дока,
+        // сверху не доходит до края — за ним видно приложение
+        '<div data-mp-sheet="1" style="position:absolute;left:8px;right:8px;top:calc(64px + var(--sat, 0px));bottom:calc(90px + var(--sab, 0px));' +
+        'background:#f2f3f7;border-radius:26px;overflow:hidden;display:flex;flex-direction:column;' +
+        'box-shadow:0 1px 2px rgba(20,32,60,0.08), 0 18px 44px rgba(20,32,60,0.26);' +
+        'transform:translateY(calc(100% + 96px));transition:transform 520ms cubic-bezier(.22,1,.36,1);">' +
         // шапка с крестиком
-        '<div style="flex:none;padding:calc(52px + var(--sat, 0px)) 18px 0;">' +
+        '<div style="flex:none;padding:14px 18px 0;">' +
         '<span data-mp-close="1" style="display:inline-flex;width:34px;height:34px;align-items:center;justify-content:center;cursor:pointer;margin-left:-6px;">' +
         '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#111319" stroke-width="2.1" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></span></div>' +
         // прокручиваемое тело
         '<div style="position:relative;flex:1;min-height:0;display:flex;flex-direction:column;">' +
-        '<div data-mp-scroll="1" style="flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;padding:0 18px calc(40px + var(--sab, 0px));touch-action:pan-y;">' +
+        '<div data-mp-scroll="1" style="flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;padding:0 16px 22px;touch-action:pan-y;">' +
         // карточка метаресурса
         '<div style="display:flex;align-items:center;gap:15px;padding:10px 0 4px;">' +
         '<img src="' + window.__ioAsset(d.icon) + '" style="flex:none;width:64px;height:64px;border-radius:15px;object-fit:cover;box-shadow:0 2px 8px rgba(30,50,90,0.18);">' +
@@ -9271,6 +9275,8 @@ class Component extends DCLogic {
       });
       if (window.__ioHaptic) window.__ioHaptic('light');
       m.querySelector('[data-mp-close]').addEventListener('click', (e) => { e.stopPropagation(); closeMetaProfile(); });
+      // тап по затемнённой области вокруг окна — тоже закрытие
+      m.addEventListener('click', (e) => { if (e.target === m) closeMetaProfile(); });
       // сворачивание секций — высота числом, затем auto, чтобы содержимое могло расти
       m.querySelectorAll('[data-mp-head]').forEach((h) => h.addEventListener('click', () => {
         const b = m.querySelector('[data-mp-body="' + h.getAttribute('data-mp-head') + '"]');
