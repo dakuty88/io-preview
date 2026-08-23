@@ -4622,9 +4622,9 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
         </div>
 
         <span data-pulses="1" style="position: absolute; inset: 0.5px; border-radius: 24px; overflow: hidden; clip-path: inset(0 round 24px); -webkit-clip-path: inset(0 round 24px); transform: translateZ(0); isolation: isolate; pointer-events: none; z-index: 1; transition: opacity 200ms ease;">
-          <span style="position: absolute; left: 50%; top: 50%; width: 40px; height: 40px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.9); box-sizing: border-box; transform: translate(-50%,-50%); animation: ioPulse 3s cubic-bezier(.22,1,.36,1) infinite;"></span>
-          <span style="position: absolute; left: 50%; top: 50%; width: 40px; height: 40px; border-radius: 50%; border: 1.8px solid rgba(255,255,255,0.62); box-sizing: border-box; transform: translate(-50%,-50%); animation: ioPulse 3s cubic-bezier(.22,1,.36,1) infinite 1s;"></span>
-          <span style="position: absolute; left: 50%; top: 50%; width: 40px; height: 40px; border-radius: 50%; border: 1.6px solid rgba(255,255,255,0.4); box-sizing: border-box; transform: translate(-50%,-50%); animation: ioPulse 3s cubic-bezier(.22,1,.36,1) infinite 2s;"></span>
+          <span data-pulse-ring="0" style="position: absolute; left: 50%; top: 50%; width: 40px; height: 40px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.9); box-sizing: border-box; transform: translate(-50%,-50%); animation: ioPulse 3s cubic-bezier(.22,1,.36,1) infinite;"></span>
+          <span data-pulse-ring="1" style="position: absolute; left: 50%; top: 50%; width: 40px; height: 40px; border-radius: 50%; border: 1.8px solid rgba(255,255,255,0.62); box-sizing: border-box; transform: translate(-50%,-50%); animation: ioPulse 3s cubic-bezier(.22,1,.36,1) infinite 1s;"></span>
+          <span data-pulse-ring="2" style="position: absolute; left: 50%; top: 50%; width: 40px; height: 40px; border-radius: 50%; border: 1.6px solid rgba(255,255,255,0.4); box-sizing: border-box; transform: translate(-50%,-50%); animation: ioPulse 3s cubic-bezier(.22,1,.36,1) infinite 2s;"></span>
         </span>
 
         <span data-label-cancel="1" style="position: relative; font-size: 11px; color: rgba(43,58,94,0.45); font-weight: 700;"></span>
@@ -8801,6 +8801,21 @@ class Component extends DCLogic {
     ];
     if (!window.__ioMode) window.__ioMode = 'local';
     const modeOf = () => IO_MODES.find((x) => x.k === window.__ioMode) || IO_MODES[0];
+    // волны капсулы подкрашиваются под режим: зелень — безопасно, синева — выход в сеть.
+    // вне чата кольца снова белые, как задумано у капсулы записи
+    const MODE_WAVE = { local: '104,206,152', global: '104,164,246' };
+    const RING_W = [2, 1.8, 1.6], RING_A = [0.82, 0.56, 0.36];
+    const paintPulses = () => {
+      const host = q('[data-pulses]');
+      if (!host) return;
+      const rgb = chatDock.__on ? (MODE_WAVE[window.__ioMode] || MODE_WAVE.local) : '255,255,255';
+      const a = chatDock.__on ? RING_A : [0.9, 0.62, 0.4];
+      host.querySelectorAll('[data-pulse-ring]').forEach((el) => {
+        const i = +el.getAttribute('data-pulse-ring');
+        el.style.borderColor = 'rgba(' + rgb + ',' + a[i] + ')';
+        el.style.borderWidth = RING_W[i] + 'px';
+      });
+    };
     let modeMenu = null, modeCloser = null;
     const closeModeMenu = () => {
       if (!modeMenu) return;
@@ -8817,6 +8832,7 @@ class Component extends DCLogic {
       if (!b) return;
       b.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4a5a76" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">' + modeOf().icon + '</svg>';
       b.setAttribute('data-mode-cur', window.__ioMode);
+      paintPulses();
     };
     const openModeMenu = () => {
       closeModeMenu();
@@ -8938,6 +8954,7 @@ class Component extends DCLogic {
         if (sImg) { sImg.style.transition = 'opacity 220ms ease'; sImg.style.opacity = on ? '0' : '1'; }
         if (on) sb.setAttribute('data-profile-btn', '1'); else sb.removeAttribute('data-profile-btn');
       }
+      paintPulses();
       if (!on) closeModeMenu();
     };
     window.__ioSyncDock = syncDock;
