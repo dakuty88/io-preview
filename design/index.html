@@ -234,7 +234,7 @@
   <div class="demo">
     <div class="info"><span class="tag">Деформация</span><h3>Жидкость под прессом</h3>
       <p>Пока кнопка едет к стенке, капля сплющивается: −58% по ширине, +115% вниз, скос и подворот. От контура кнопки её отделяет мягкий вырез — жидкость обтекает грань. Тает только на последних 15% хода, а полный прижим выталкивает её и открывает центр.</p>
-      <div class="specs"><span class="spec">scale(0.42, 2.15) max</span><span class="spec">вырез · r19→30 픽</span><span class="spec">растворение · k&gt;0.85</span></div></div>
+      <div class="specs"><span class="spec">scale(0.42, 2.15) max</span><span class="spec">вырез · r22→35px</span><span class="spec">растворение · k&gt;0.85</span></div></div>
     <div class="stage" data-demo="blob" style="flex-direction:column;gap:26px">
       <div class="capsule" style="width:230px;height:56px;border-radius:28px">
         <span class="bloblayer" style="position:absolute;inset:0;border-radius:inherit;overflow:hidden;pointer-events:none;z-index:1">
@@ -389,6 +389,10 @@
       img.style.filter = 'brightness(' + (1+k*0.3) + ') saturate(' + (1+k*0.25) + ')';
       img.style.opacity = String(Math.max(0, 1 - Math.max(0, k-0.85)/0.15));
       num.style.opacity = String(1 - k*0.85);
+      // кольца ожидания идут от кнопки: пока её ведут — пульс гаснет,
+      // иначе он остаётся висеть в центре и читается как лишний круг
+      const rings = cap.querySelector('.rings');
+      if (rings) { rings.style.transition = 'opacity 240ms ease'; rings.style.opacity = String(Math.max(0, 1 - k*4)); }
       const knobX = cap.offsetWidth/2 - k*maxShift;
       const hole = 'radial-gradient(circle at ' + knobX + 'px 50%, transparent 22px, rgba(0,0,0,.55) 28px, #000 35px)';
       layer.style.webkitMaskImage = hole; layer.style.maskImage = hole;
