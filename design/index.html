@@ -74,11 +74,16 @@
     background:rgba(58,126,247,.09);padding:5px 12px;border-radius:10px}
   .demo .info h3{font-size:23px;font-weight:900;letter-spacing:-.6px}
   .demo .info p{color:var(--sub);font-size:15px}
+  .demo .try{margin-top:14px;font-size:14px;font-weight:700;color:var(--blue);
+    display:flex;align-items:center;gap:8px}
+  .demo .try::before{content:'';width:16px;height:16px;flex:none;border-radius:50%;
+    background:rgba(58,126,247,.14);box-shadow:inset 0 0 0 1.5px rgba(58,126,247,.5)}
   .demo .specs{margin-top:auto;padding-top:16px;display:flex;flex-wrap:wrap;gap:7px}
   .spec{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11.5px;color:#46536b;background:#eef2fa;border-radius:8px;padding:4px 9px}
-  .stage{position:relative;min-height:180px;background:linear-gradient(180deg,#5b6ec2 0%,#7c92d1 60%,#a9bade 100%);
+  .stage{position:relative;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;padding:22px 0;background:linear-gradient(180deg,#5b6ec2 0%,#7c92d1 60%,#a9bade 100%);
     display:flex;align-items:center;justify-content:center;min-height:250px;user-select:none;-webkit-user-select:none;touch-action:none}
-  .stage .hint{position:absolute;left:0;right:0;bottom:14px;text-align:center;font-size:12px;color:rgba(255,255,255,.75);pointer-events:none}
+  .stage .hint{margin-top:12px;text-align:center;font-size:12px;color:rgba(255,255,255,.75);pointer-events:none}
   .stage .flash{position:absolute;left:50%;top:26%;transform:translate(-50%,-50%);padding:9px 18px;border-radius:16px;
     background:rgba(255,255,255,.92);box-shadow:0 8px 22px rgba(20,40,90,.25);font-size:13.5px;font-weight:700;color:var(--ink);
     opacity:0;transition:opacity 240ms ease, transform 420ms cubic-bezier(.22,1,.36,1);pointer-events:none;white-space:nowrap}
@@ -87,43 +92,17 @@
   /* ── сцена под живую капсулу ────────────── */
   /* Разметка капсулы не пишется здесь: extract.py вкладывает её из
      Main.dc.html в <template>, а демо клонируют оттуда. */
-  .stage .capsule-host{position:relative;display:flex;justify-content:center}
-  .stage .capsule-host [data-mid-plate]{flex:none}
-  /*KEYFRAMES*/
-  @keyframes ioPulse {
-    0%   { transform: translate(-50%,-50%) scale(0.92); opacity: 0; }
-    12%  { opacity: 0.95; }
-    55%  { opacity: 0.6; }
-    86%  { opacity: 0; }
-    100% { transform: translate(-50%,-50%) scale(1.15); opacity: 0; }
-  }
-  @keyframes ioTapJelly {
-    0%   { transform: scale(1); }
-    28%  { transform: scale(0.84, 0.9); }
-    55%  { transform: scale(1.14, 1.07); }
-    78%  { transform: scale(0.96, 0.98); }
-    100% { transform: scale(1); }
-  }
-  @keyframes ioTapGlow {
-    0%   { box-shadow: 0 0 0 0 rgba(96,170,255,0.5), 0 1px 3px rgba(40,60,100,0.14); }
-    40%  { box-shadow: 0 0 0 10px rgba(96,170,255,0), 0 1px 3px rgba(40,60,100,0.14), 0 0 16px rgba(96,170,255,0.75); }
-    100% { box-shadow: 0 0 0 0 rgba(96,170,255,0), 0 1px 3px rgba(40,60,100,0.14); }
-  }
-  @keyframes ioTapRing {
-    0%   { transform: translate(-50%,-50%) scale(0.85); opacity: 0.95; }
-    100% { transform: translate(-50%,-50%) scale(2.1); opacity: 0; }
-  }
-  @keyframes ioBar { 0%, 100% { transform: scaleY(0.5); opacity: 0.75; } 50% { transform: scaleY(1); opacity: 1; } }
-  @keyframes modeBurst {
-    0%   { transform: translate(-50%,-50%) scale(0.2); opacity: 0; }
-    14%  { opacity: 0.9; }
-    100% { transform: translate(-50%,-50%) scale(2.9); opacity: 0; }
-  }
-  @keyframes recDot {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.35; transform: scale(0.82); }
-  }
-  /*/KEYFRAMES*/
+  .stage{overflow:hidden}
+  /* Врезка: внутри — сам прототип, сдвинутый так, чтобы в кадр попала только
+     капсула и место над ней. Копий элементов на странице нет. */
+  .stage .proto{position:relative;width:min(100%,420px);overflow:hidden;border-radius:18px;
+    box-shadow:0 10px 30px rgba(16,28,60,.22)}
+  .stage .proto iframe{position:absolute;border:0;width:420px;height:900px;
+    opacity:0;transition:opacity 420ms ease;background:transparent}
+  .stage .proto iframe.on{opacity:1}
+  .stage .boot{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);z-index:2;
+    text-align:center;font-size:12.5px;color:rgba(255,255,255,.72);transition:opacity 300ms ease}
+  .stage .boot.off{opacity:0}
 
   /* палитра */
   .swatch{border-radius:18px;height:86px;box-shadow:inset 0 0 0 .6px rgba(16,24,40,.08)}
@@ -157,8 +136,7 @@
     <h1>Дизайн-система</h1>
     <p>Как устроена капсула iO, что делает каждый жест и какими значениями это задано.</p>
     <div class="hero-stage"><div class="stage" style="border-radius:24px;width:min(100%,420px);min-height:150px" data-demo="tap">
-      <div class="capsule-host"></div>
-      <span class="hint">нажми на кнопку</span>
+      <div class="proto" data-proto="tap" data-tall="10"></div>
     </div></div>
   </div>
 </header>
@@ -191,10 +169,10 @@
   <div class="demo">
     <div class="info"><span class="tag">Тап</span><h3>Отклик на тап</h3>
       <p>Нажатие сжимает шайбу до 0.84 по горизонтали, перебрасывает через 1.14 и возвращает к единице. Одновременно от центра расходится белое кольцо, по контуру проходит голубое свечение.</p>
-      <div class="specs"><span class="spec">ioTapJelly · 460ms</span><span class="spec">cubic-bezier(.22,1,.36,1)</span><span class="spec">кольцо · 700ms</span></div></div>
+      <div class="specs"><span class="spec">ioTapJelly · 460ms</span><span class="spec">cubic-bezier(.22,1,.36,1)</span><span class="spec">кольцо · 700ms</span></div>
+      <p class="try">нажми на кнопку</p></div>
     <div class="stage" data-demo="tap">
-      <div class="capsule-host"></div>
-      <span class="hint">нажми на кнопку</span>
+      <div class="proto" data-proto="tap" data-tall="10"></div>
     </div>
   </div>
 </div></section>
@@ -207,40 +185,40 @@
     <div class="demo">
       <div class="info"><span class="tag">Свайп вправо</span><h3>Голосовая запись</h3>
         <p>Кнопка тянется вправо с сопротивлением. Дожал до края — капсула превращается в запись: эквалайзер, таймер, мигающая точка. Отпустил раньше — пружинит назад.</p>
-        <div class="specs"><span class="spec">резинка · rubber(dx)</span><span class="spec">порог · край пилюли</span><span class="spec">возврат · 420ms spring</span></div></div>
+        <div class="specs"><span class="spec">резинка · rubber(dx)</span><span class="spec">порог · край пилюли</span><span class="spec">возврат · 420ms spring</span></div>
+      <p class="try">потяни кнопку вправо до края</p></div>
       <div class="stage" data-demo="right">
-        <div class="capsule-host"></div>
-        <div class="flash">● запись пошла</div><span class="hint">потяни кнопку вправо до края</span>
+        <div class="proto" data-proto="right" data-tall="14"></div>
       </div>
     </div>
 
     <div class="demo">
       <div class="info"><span class="tag">Свайп влево</span><h3>Центр уведомлений</h3>
         <p>Влево — центр уведомлений. Если алерты накоплены, в торце капсулы стоит капля, и кнопка по дороге сплющивает её о стенку. Полный прижим открывает окно над меню: карточки по метаресурсам, свайп по карточке скрывает её, свайп вниз сворачивает окно.</p>
-        <div class="specs"><span class="spec">окно · снизу, на меню</span><span class="spec">карточка · свайп влево скрыть</span><span class="spec">свайп вниз · свернуть</span></div></div>
-      <div class="stage" data-demo="left">
-        <div class="capsule-host"></div>
-        <div class="flash">центр уведомлений открыт</div><span class="hint">потяни кнопку влево до края</span>
+        <div class="specs"><span class="spec">окно · снизу, на меню</span><span class="spec">карточка · свайп влево скрыть</span><span class="spec">свайп вниз · свернуть</span></div>
+      <p class="try">потяни кнопку влево до края</p></div>
+      <div class="stage" data-demo="left" style="min-height:420px">
+        <div class="proto" data-proto="left" data-tall="300"></div>
       </div>
     </div>
 
     <div class="demo">
       <div class="info"><span class="tag">Свайп вверх</span><h3>Live-диалог</h3>
         <p>Вверх — диалог с iO. Панель выезжает снизу за 560 мс, сверху голосовая волна, ниже приветствие и теги-подсказки, входящие каскадом по 55 мс.</p>
-        <div class="specs"><span class="spec">панель · 560ms</span><span class="spec">cubic-bezier(.22,1,.36,1)</span><span class="spec">теги · каскад +55ms</span></div></div>
-      <div class="stage" data-demo="up">
-        <div class="capsule-host"></div>
-        <div class="flash">Live-диалог открыт</div><span class="hint">потяни кнопку вверх</span>
+        <div class="specs"><span class="spec">панель · 560ms</span><span class="spec">cubic-bezier(.22,1,.36,1)</span><span class="spec">теги · каскад +55ms</span></div>
+      <p class="try">потяни кнопку вверх</p></div>
+      <div class="stage" data-demo="up" style="min-height:460px">
+        <div class="proto" data-proto="up" data-tall="340"></div>
       </div>
     </div>
 
     <div class="demo">
       <div class="info"><span class="tag">Свайп вниз</span><h3>Сканер контекста</h3>
         <p>Вниз — сканирование экрана. Луч проходит по контенту, видимые блоки обводятся контуром, итог зависит от места: лента новостей даёт сводку сюжетов, строка сообщения — разбор текста, витрина — подборки. В окне после скана волны нет: слушать нечего.</p>
-        <div class="specs"><span class="spec">луч · 2600ms по экрану</span><span class="spec">в строке · 1500ms</span><span class="spec">контуры · только видимое</span></div></div>
-      <div class="stage" data-demo="down">
-        <div class="capsule-host"></div>
-        <div class="flash">сканирую экран…</div><span class="hint">потяни кнопку вниз</span>
+        <div class="specs"><span class="spec">луч · 2600ms по экрану</span><span class="spec">в строке · 1500ms</span><span class="spec">контуры · только видимое</span></div>
+      <p class="try">потяни кнопку вниз</p></div>
+      <div class="stage" data-demo="down" style="min-height:460px">
+        <div class="proto" data-proto="down" data-tall="340"></div>
       </div>
     </div>
   </div>
@@ -255,11 +233,10 @@
       <p>Пока кнопка едет к стенке, капля сплющивается: −58% по ширине, +115% вниз, скос и подворот.
         От контура кнопки её отделяет вырез в маске, поэтому кнопка не наезжает на каплю, а раздвигает её.
         Растворяется капля только на последних 15% хода; полный прижим открывает центр уведомлений.</p>
-      <div class="specs"><span class="spec">scale(0.42, 2.15) max</span><span class="spec">вырез · r22→35px</span><span class="spec">растворение · k&gt;0.85</span></div></div>
+      <div class="specs"><span class="spec">scale(0.42, 2.15) max</span><span class="spec">вырез · r22→35px</span><span class="spec">растворение · k&gt;0.85</span></div>
+      <p class="try">тяни кнопку влево — смотри, как плющится капля</p></div>
     <div class="stage" data-demo="blob" style="flex-direction:column;gap:24px">
-      <div class="capsule-host"></div>
-      <input type="range" min="0" max="100" value="0" data-blob-slider style="width:200px;accent-color:#fff">
-      <span class="hint">ползунок — это прижим кнопки</span>
+      <div class="proto" data-proto="blob" data-tall="12"></div>
     </div>
   </div>
 </div></section>
@@ -273,32 +250,10 @@
     <div class="info"><span class="tag">Морф · 460ms</span><h3>Дом ↔ метаресурс</h3>
       <p>Иконки гаснут, круглые сегменты проявляются со своими контурами. Капсула iO не двигается —
         она общая для обоих состояний, поэтому переход читается как смена окружения вокруг неё.</p>
-      <div class="specs"><span class="spec">морф · 400–460ms</span><span class="spec">кроссфейд содержимого</span><span class="spec">ось · капсула iO</span></div></div>
+      <div class="specs"><span class="spec">морф · 400–460ms</span><span class="spec">кроссфейд содержимого</span><span class="spec">ось · капсула iO</span></div>
+      <p class="try">переключи состояние меню</p></div>
     <div class="stage" data-demo="morph" style="flex-direction:column;gap:24px">
-      <div data-morph-stage style="position:relative;width:300px;height:66px">
-        <div data-home-plate style="position:absolute;inset:0;border-radius:33px;background:rgba(244,247,253,.6);backdrop-filter:blur(14px);
-          box-shadow:inset 0 0 0 .7px rgba(255,255,255,.75), 0 0 0 .6px rgba(104,120,156,.3), 0 8px 22px rgba(20,40,90,.2);
-          display:flex;align-items:center;justify-content:space-around;padding:0 12px;transition:opacity 420ms ease">
-          <i style="width:38px;height:38px;border-radius:11px;background:linear-gradient(160deg,#63d471,#2fa84f)"></i>
-          <i style="width:38px;height:38px;border-radius:11px;background:linear-gradient(160deg,#ffb35c,#f07f2d)"></i>
-          <span style="width:70px"></span>
-          <i style="width:38px;height:38px;border-radius:11px;background:linear-gradient(160deg,#4059c9,#22347e)"></i>
-          <i style="width:38px;height:38px;border-radius:11px;background:conic-gradient(from 0deg,#ff5c8a,#ffb35c,#63d471,#5c9dff,#ff5c8a)"></i>
-        </div>
-        <div data-seg-l style="position:absolute;left:0;top:8px;width:50px;height:50px;border-radius:50%;background:rgba(244,247,253,.58);
-          box-shadow:inset 0 0 0 .7px rgba(255,255,255,.75), 0 0 0 .6px rgba(104,120,156,.3), 0 1px 3px rgba(30,50,90,.09);
-          opacity:0;transform:scale(.6);transition:opacity 380ms ease,transform 460ms cubic-bezier(.22,1,.36,1);
-          display:flex;align-items:center;justify-content:center">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b4a6b" stroke-width="2" stroke-linecap="round"><path d="M4 8h9M17 8h3"/><circle cx="15" cy="8" r="2.2" fill="#3b4a6b" stroke="none"/><path d="M4 16h3M11 16h9"/><circle cx="9" cy="16" r="2.2" fill="#3b4a6b" stroke="none"/></svg>
-        </div>
-        <div data-seg-r style="position:absolute;right:0;top:8px;width:50px;height:50px;border-radius:50%;background:#fff;
-          box-shadow:0 0 0 .6px rgba(104,120,156,.3), 0 2px 8px rgba(30,50,90,.12);
-          opacity:0;transform:scale(.6);transition:opacity 380ms ease,transform 460ms cubic-bezier(.22,1,.36,1);
-          display:flex;align-items:center;justify-content:center">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#12182a" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
-        </div>
-        <div class="capsule-host" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:150px;z-index:4"></div>
-      </div>
+      <div class="proto" data-proto="morph" data-tall="16"></div>
       <button data-morph-btn style="border:none;cursor:pointer;padding:9px 22px;border-radius:16px;background:rgba(255,255,255,.9);
         font:700 13.5px 'Nunito',sans-serif;color:#1b2340;box-shadow:0 4px 14px rgba(20,40,90,.2)">Переключить состояние</button>
     </div>
@@ -319,239 +274,113 @@
   <div class="sep"></div>
 </div></section>
 
-<template id="cap-src"><!--CAPSULE-->
-<span data-seg="1" data-mid-plate="1" style="flex: none; display: flex; align-items: center; gap: 20px; width: 229px; height: 58px; box-sizing: border-box; padding: 0 11px; justify-content: center; border-radius: 29px; background: rgba(244,247,253,0.58); backdrop-filter: blur(14px) saturate(130%); -webkit-backdrop-filter: blur(14px); box-shadow: inset 0 0 0 0.7px rgba(255,255,255,0.75), 0 0 0 0.6px rgba(104,120,156,0.3), 0 1px 3px rgba(30,50,90,0.09); transition: padding 420ms cubic-bezier(.22,1,.36,1), width 460ms cubic-bezier(.22,1,.36,1);">
-      <span data-menu-btn="1" data-mid-sliders="1" style="position: relative; flex: none; width: 36px; height: 36px; border-radius: 50%; display: block; cursor: pointer; overflow: hidden; transition: width 380ms cubic-bezier(.22,1,.36,1), opacity 220ms ease, margin-right 380ms cubic-bezier(.22,1,.36,1);">
-        <span style="position: absolute; inset: 0; border-radius: 50%; background: rgba(176,186,214,0.55); border: 1px solid rgba(120,132,160,0.25); box-sizing: border-box; display: flex; align-items: center; justify-content: center;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#12182a" stroke-width="2" stroke-linecap="round"><path d="M4 8h9M17 8h3"></path><circle cx="15" cy="8" r="2.2" fill="#12182a" stroke="none"></circle><path d="M4 16h3M11 16h9"></path><circle cx="9" cy="16" r="2.2" fill="#12182a" stroke="none"></circle></svg></span>
-      
-        <span data-agent-icon="1" style="position: absolute; inset: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at 50% 38%, #f4f9ff 0%, #dde8f6 100%); opacity: 0; pointer-events: none; transition: opacity 300ms ease;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b4a6b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 9.5c0-4 1.6-6 4.5-6s4.5 2 4.5 6" fill="#3b4a6b" stroke="none"></path><path d="M3.5 10.5c2.5-1 5.5-1.4 8.5-1.4s6 .4 8.5 1.4" stroke-width="2"></path><circle cx="8.3" cy="16" r="2.3"></circle><circle cx="15.7" cy="16" r="2.3"></circle><path d="M10.6 15.6c.9-.5 1.9-.5 2.8 0"></path></svg></span>
-      </span>
-
-      <div data-pill-wrap="1" style="position: relative; flex: none; width: 95px; transition: width 420ms cubic-bezier(.22,1,.36,1); transform-origin: 50% calc(100% - 24.5px);">
-      <div data-glass="1" style="position: absolute; left: 0; right: 0; top: 0; height: 49px; transition: border-radius 420ms cubic-bezier(.22,1,.36,1); pointer-events: none; z-index: 0; background: linear-gradient(180deg, #dfe7f5 0%, #b9c5dc 100%); box-shadow: inset 0 1.5px 1.5px rgba(255,255,255,0.9), 0 4px 10px rgba(30,50,100,0.16); border-radius: 24.5px;"></div>
-
-      <svg data-membrane="1" viewBox="0 0 98 113" preserveAspectRatio="none" style="position: absolute; left: 0; right: 0; top: -32px; width: 100%; height: 113px; overflow: visible; pointer-events: none; z-index: 0;">
-        <defs>
-          <linearGradient id="pillGlass" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#ffffff" stop-opacity="0.14"></stop>
-            <stop offset="1" stop-color="#ffffff" stop-opacity="0.04"></stop>
-          </linearGradient>
-        </defs>
-        <path data-membrane-line="1" d="M24.5,32 L73.5,32 A24.5,24.5 0 0 1 73.5,81 L24.5,81 A24.5,24.5 0 0 1 24.5,32 Z" fill="none" stroke="#7286aa" stroke-opacity="0.55" stroke-width="1" vector-effect="non-scaling-stroke" style="transition: stroke-opacity 420ms ease" style="transition: stroke-opacity 320ms ease"></path>
-      </svg>
-
-      <span data-aura="1" style="position: absolute; inset: 0; border-radius: 24.5px; overflow: hidden; pointer-events: none; opacity: 0; transition: opacity 600ms ease; z-index: 0;">
-        <span style="position: absolute; inset: -45%; background: radial-gradient(40% 62% at 24% 50%, rgba(64,132,246,0.55), rgba(64,132,246,0) 70%), radial-gradient(34% 56% at 58% 44%, rgba(150,104,238,0.46), rgba(150,104,238,0) 72%); filter: blur(16px); animation: auraDrift 7s ease-in-out infinite;"></span>
-        <span style="position: absolute; inset: -45%; background: radial-gradient(34% 56% at 80% 54%, rgba(56,196,214,0.42), rgba(56,196,214,0) 72%), radial-gradient(30% 52% at 46% 64%, rgba(120,150,255,0.34), rgba(120,150,255,0) 76%); filter: blur(18px); animation: auraDrift2 9s ease-in-out infinite;"></span>
-      </span>
-
-
-      <span data-liquid="1" style="position: absolute; inset: 0; border-radius: 24.5px; overflow: hidden; pointer-events: none; opacity: 0; transition: opacity 620ms ease, border-radius 420ms cubic-bezier(.22,1,.36,1); z-index: 0;">
-        <span style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.12) 38%, rgba(255,255,255,0) 62%, rgba(255,255,255,0.22) 100%);"></span>
-        
-        <span style="position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 1.4px 1.2px rgba(255,255,255,0.98), inset 0 0 0 1px rgba(255,255,255,0.45), inset 0 -8px 16px rgba(120,150,200,0.22);"></span>
-      </span>
-
-      <div data-swipe-track="1" style="position: relative; height: 49px; border-radius: 24.5px; transition: height 420ms cubic-bezier(.22,1,.36,1), border-radius 420ms cubic-bezier(.22,1,.36,1); clip-path: inset(0.5px round 24px); -webkit-clip-path: inset(0.5px round 24px); display: flex; align-items: center; justify-content: space-between; padding: 0 7px; box-sizing: border-box; background: transparent; border: none; touch-action: none; user-select: none; will-change: transform, filter, opacity;">
-
-        <div style="position: absolute; inset: 0; border-radius: 24.5px; overflow: hidden; pointer-events: none;">
-        <div data-fill="1" style="position: absolute; inset: 0; transform-origin: left center; transform: scaleX(0); opacity: 0; background: linear-gradient(90deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.15) 100%);"></div>
-        <div data-contact="1" style="position: absolute; width: 130px; height: 24px; opacity: 0; filter: blur(7px); transform-origin: 50% 50%; pointer-events: none;"></div>
-        </div>
-
-        <span data-pulses="1" style="position: absolute; inset: 0.5px; border-radius: 24px; overflow: hidden; clip-path: inset(0 round 24px); -webkit-clip-path: inset(0 round 24px); transform: translateZ(0); isolation: isolate; pointer-events: none; z-index: 1; transition: opacity 200ms ease;">
-          <span data-pulse-ring="0" style="position: absolute; left: 50%; top: 50%; width: 40px; height: 40px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.9); box-sizing: border-box; transform: translate(-50%,-50%); animation: ioPulse 3s cubic-bezier(.22,1,.36,1) infinite;"></span>
-          <span data-pulse-ring="1" style="position: absolute; left: 50%; top: 50%; width: 40px; height: 40px; border-radius: 50%; border: 1.8px solid rgba(255,255,255,0.62); box-sizing: border-box; transform: translate(-50%,-50%); animation: ioPulse 3s cubic-bezier(.22,1,.36,1) infinite 1s;"></span>
-          <span data-pulse-ring="2" style="position: absolute; left: 50%; top: 50%; width: 40px; height: 40px; border-radius: 50%; border: 1.6px solid rgba(255,255,255,0.4); box-sizing: border-box; transform: translate(-50%,-50%); animation: ioPulse 3s cubic-bezier(.22,1,.36,1) infinite 2s;"></span>
-        </span>
-
-        <span data-label-cancel="1" style="position: relative; font-size: 11px; color: rgba(43,58,94,0.45); font-weight: 700;"></span>
-        <span data-label-send="1" style="position: relative; font-size: 11px; color: rgba(43,58,94,0.45); font-weight: 700;"></span>
-
-        <div data-rec="1" style="position: absolute; left: 14px; right: 14px; top: 6px; bottom: 6px; overflow: visible; border-radius: 19px; display: flex; align-items: center; gap: 8px; opacity: 0; pointer-events: none;">
-          <span data-x-btn="1" data-rec-part="1" style="flex: none; width: 34px; height: 34px; border-radius: 50%; background: #ffffff; box-shadow: 0 2px 6px rgba(40,60,100,0.18); display: flex; align-items: center; justify-content: center; cursor: pointer; pointer-events: auto; touch-action: manipulation;">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#12182a" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12"></path><path d="M18 6L6 18"></path></svg>
-          </span>
-          <canvas data-rec-part="1" data-rec-bars="1" style="position: absolute; left: 42px; width: calc(100% - 126px); top: 50%; transform: translateY(-50%); height: 14px; display: block; transition: width 320ms ease; -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 14%, #000 86%, transparent 100%); mask-image: linear-gradient(90deg, transparent 0%, #000 14%, #000 86%, transparent 100%);"></canvas>
-          <span data-rec-time="1" style="display: none;">0:00</span>
-          <span data-rec-hint="1" style="display: none;"></span>
-          <span data-stop-btn2="1" data-rec-part="1" style="margin-left: auto; flex: none; width: 34px; height: 34px; border-radius: 50%; background: #ffffff; box-shadow: 0 2px 6px rgba(40,60,100,0.18); display: flex; align-items: center; justify-content: center; cursor: pointer; pointer-events: auto; touch-action: manipulation;">
-            <span style="width: 11px; height: 11px; border-radius: 3px; background: #12182a;"></span>
-          </span>
-          <span data-send-btn="1" data-rec-part="1" style="flex: none; width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(180deg, #3fa4f5 0%, #1f7fe0 100%); box-shadow: inset 0 1px 1px rgba(255,255,255,0.5), 0 2px 6px rgba(20,90,170,0.35); display: flex; align-items: center; justify-content: center; cursor: pointer; pointer-events: auto; touch-action: manipulation;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V5"></path><path d="M5.5 11.5L12 5l6.5 6.5"></path></svg>
-          </span>
-          <span data-mic-btn="1" data-rec-part="1" style="margin-left: auto; display: none; flex: none; width: 34px; height: 34px; border-radius: 50%; background: #12182a; box-shadow: 0 2px 6px rgba(10,20,50,0.35); align-items: center; justify-content: center; cursor: pointer; pointer-events: auto; touch-action: manipulation;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0"></path><path d="M12 18v3"></path></svg>
-          </span>
-        </div>
-
-        <div data-proc="1" style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: flex-end; padding-right: 13px; box-sizing: border-box; opacity: 0; pointer-events: none; transition: opacity 260ms ease;">
-          <span style="width: 29px; height: 29px; border-radius: 50%; background: rgba(255,255,255,0.92); box-shadow: 0 1px 4px rgba(40,60,100,0.16); display: flex; align-items: center; justify-content: center;">
-            <svg width="17" height="17" viewBox="0 0 24 24" style="animation: spin 900ms steps(8) infinite;">
-              <g stroke="#6c7a95" stroke-width="2.1" stroke-linecap="round">
-                <path d="M12 3.6v3.6" opacity="1"></path><path d="M12 16.8v3.6" opacity="0.45"></path>
-                <path d="M3.6 12h3.6" opacity="0.7"></path><path d="M16.8 12h3.6" opacity="0.3"></path>
-                <path d="M6.1 6.1l2.5 2.5" opacity="0.85"></path><path d="M15.4 15.4l2.5 2.5" opacity="0.35"></path>
-                <path d="M6.1 17.9l2.5-2.5" opacity="0.55"></path><path d="M15.4 8.6l2.5-2.5" opacity="0.25"></path>
-              </g>
-            </svg>
-          </span>
-        </div>
-
-        <div data-knob="1" style="position: absolute; left: 50%; top: 50%; width: 36px; height: 36px; margin: -18px 0 0 -18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: grab; will-change: transform; z-index: 2; background: radial-gradient(circle at 50% 38%, #f4f9ff 0%, #e6effa 70%, #dde8f6 100%); box-shadow: 0 0 0 0.7px rgba(120,140,180,0.35), 0 1px 3px rgba(40,60,100,0.14);">
-          <span data-knob-io="1" style="font-family: Nunito, system-ui, sans-serif; font-weight: 700; font-size: 15px; letter-spacing: -0.3px; color: #4a5a76; line-height: 1;">iO</span>
-        </div>
-      </div>
-      </div>
-
-      <span data-menu-btn="1" data-shop-btn="1" style="flex: none; width: 36px; height: 36px; transition: width 380ms cubic-bezier(.22,1,.36,1), opacity 220ms ease, margin-left 380ms cubic-bezier(.22,1,.36,1); border-radius: 50%; display: block; cursor: pointer; overflow: hidden; transition: width 380ms cubic-bezier(.22,1,.36,1), opacity 220ms ease, margin-right 380ms cubic-bezier(.22,1,.36,1);">
-        <img data-i="chat" src="data:image/png;base64,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" alt="Store" style="width: 100%; height: 100%; display: block; object-fit: cover;" />
-      </span>
-      </span>
-<!--/CAPSULE--></template>
-
 <footer><div class="wrap">iO · внутренний документ проекта</div></footer>
 
 <script>
 (() => {
-  // Капсула не описана в этом файле: extract.py кладёт разметку из
-  // Main.dc.html в <template id="cap-src">, а каждая сцена клонирует её.
-  const SRC = document.getElementById('cap-src');
-  const strip = (cap) => {
-    // в прототипе плашка — сегмент меню и растягивается по его состояниям;
-    // здесь она стоит одна, поэтому фиксируем её собственный размер
-    cap.style.flex = 'none';
-    return cap;
+  // В демо-блоках работает сам прототип: страница не повторяет его элементы
+  // и не имитирует переходы, а показывает их через кадр, обрезанный по капсуле.
+  const PROTO = 'proto/Main.dc.html';
+  const alive = [];              // не держим больше нескольких кадров разом
+  const LIMIT = 3;
+
+  const settle = (fr, tall, kind) => {
+    const doc = fr.contentDocument;
+    const box = fr.parentElement;
+    const cap = doc.querySelector('[data-track-wrap]');
+    if (!cap) return false;
+    const r = cap.getBoundingClientRect();
+    if (!r.height) return false;
+    // высота кадра = капсула + запрошенное место над ней: иначе в кадр
+    // лезут соседние панели метаресурса
+    box.style.height = Math.round(tall + r.height + 30) + 'px';
+    // капсулу ставим внизу кадра, над ней остаётся это самое место
+    const left = Math.round(box.clientWidth / 2 - (r.left + r.width / 2));
+    const top = Math.round(box.clientHeight - 20 - r.bottom);
+    fr.style.left = left + 'px';
+    fr.style.top = top + 'px';
+    fr.classList.add('on');
+    const boot = box.querySelector('.boot');
+    if (boot) boot.classList.add('off');
+    prime(fr.contentWindow, kind);
+    return true;
   };
 
-  document.querySelectorAll('.capsule-host').forEach((host) => {
-    const cap = strip(SRC.content.firstElementChild.cloneNode(true));
-    host.appendChild(cap);
-  });
-
-  const knobOf = (stage) => stage.querySelector('[data-knob]');
-  const pulsesOf = (cap) => cap.querySelector('[data-pulses]');
-
-  // кольца ожидания: тот же ритм, что в прототипе — 3.4s, шаг 1.13s
-  document.querySelectorAll('.capsule-host [data-pulse-ring]').forEach((r, n) => {
-    r.style.animation = 'ioPulse 3.4s ease-out infinite';
-    r.style.animationDelay = (n % 3) * 1.13 + 's';
-  });
-
-  const tapFx = (knob) => {
-    knob.style.animation = 'none'; void knob.offsetWidth;
-    knob.style.animation = 'ioTapJelly 460ms cubic-bezier(.22,1,.36,1), ioTapGlow 540ms ease-out';
-    const host = pulsesOf(knob.closest('[data-swipe-track]'));
-    if (!host) return;
-    const r = document.createElement('span');
-    r.style.cssText = 'position:absolute;left:50%;top:50%;width:40px;height:40px;border-radius:50%;' +
-      'border:2px solid rgba(255,255,255,.95);box-sizing:border-box;transform:translate(-50%,-50%);' +
-      'animation:ioTapRing 700ms cubic-bezier(.22,1,.36,1) forwards;';
-    host.appendChild(r); setTimeout(() => r.remove(), 720);
+  // стартовое состояние под конкретный жест — функциями самого прототипа
+  const prime = (w, kind) => {
+    try {
+      // во всех блоках, кроме морфа, показываем капсулу в меню метаресурса:
+      // в домашнем состоянии она сидит в широкой подложке со всеми иконками
+      // у __ioDockMode true — это домашнее меню, false — меню метаресурса
+      if (kind !== 'morph' && w.__ioDockMode) w.__ioDockMode(false, true, true);
+      if (kind === 'morph' && w.__ioDockMode) w.__ioDockMode(true, true, true);
+      if (kind === 'down' && w.__ioSetApp) { w.__ioSetApp('news'); if (w.__ioRestore) w.__ioRestore(); }
+      if ((kind === 'blob' || kind === 'left') && w.__ioAlerts) w.__ioAlerts(3);
+    } catch (e) { /* прототип ещё поднимается — состояние выставится при следующем показе */ }
   };
 
-  const flash = (stage, ms = 1600) => {
-    const f = stage.querySelector('.flash'); if (!f) return;
-    f.classList.add('on'); setTimeout(() => f.classList.remove('on'), ms);
-  };
-
-  const burst = (cap) => {
-    const host = pulsesOf(cap); if (!host) return;
-    const b = document.createElement('span');
-    b.style.cssText = 'position:absolute;left:50%;top:50%;width:62px;height:44px;border-radius:50%;' +
-      'transform:translate(-50%,-50%) scale(.2);filter:blur(4px);background:radial-gradient(circle,' +
-      'rgba(104,164,246,0) 34%, rgba(104,164,246,.5) 60%, rgba(104,164,246,0) 82%);' +
-      'animation:modeBurst 760ms cubic-bezier(.24,.7,.3,1) forwards;';
-    host.appendChild(b); setTimeout(() => b.remove(), 900);
-  };
-
-  // резинка сопротивления — формула из прототипа
-  const rubber = (v, max) => max * (1 - 1 / (Math.abs(v) / max + 1)) * Math.sign(v);
-
-  document.querySelectorAll('.stage').forEach((stage) => {
-    const kind = stage.getAttribute('data-demo');
-    const cap = stage.querySelector('[data-swipe-track]');
-    const knob = knobOf(stage);
-    if (!knob || !cap) return;
-
-    if (kind === 'tap') { knob.addEventListener('pointerdown', () => tapFx(knob)); return; }
-    if (kind === 'blob') { setupBlob(stage, cap, knob); return; }
-    if (kind === 'morph') return;
-
-    const axis = (kind === 'up' || kind === 'down') ? 'y' : 'x';
-    const dir = (kind === 'right' || kind === 'down') ? 1 : -1;
-    let sx = 0, sy = 0, drag = false;
-    knob.addEventListener('pointerdown', (e) => {
-      drag = true; sx = e.clientX; sy = e.clientY;
-      knob.setPointerCapture(e.pointerId); knob.style.transition = 'none';
+  const mount = (box) => {
+    if (box.__fr) return;
+    const kind = box.getAttribute('data-proto');
+    const tall = +box.getAttribute('data-tall') || 60;
+    const fr = document.createElement('iframe');
+    fr.src = PROTO;
+    fr.setAttribute('scrolling', 'no');
+    fr.setAttribute('title', 'прототип iO — ' + kind);
+    box.appendChild(fr);
+    box.__fr = fr;
+    alive.push(box);
+    fr.addEventListener('load', () => {
+      let n = 0;
+      const tick = () => { if (settle(fr, tall, kind) || ++n > 60) return; setTimeout(tick, 250); };
+      tick();
     });
-    knob.addEventListener('pointermove', (e) => {
-      if (!drag) return;
-      const max = (cap.offsetWidth - knob.offsetWidth) / 2 - 4;
-      const d = axis === 'x' ? e.clientX - sx : e.clientY - sy;
-      knob.style.transform = axis === 'x'
-        ? 'translateX(' + Math.max(-max, Math.min(max, d)) + 'px)'
-        : 'translateY(' + rubber(d, 60) + 'px)';
-    });
-    const end = (e) => {
-      if (!drag) return; drag = false;
-      const max = (cap.offsetWidth - knob.offsetWidth) / 2 - 4;
-      const d = axis === 'x' ? e.clientX - sx : e.clientY - sy;
-      const ok = axis === 'x' ? (dir > 0 ? d >= max * 0.92 : d <= -max * 0.92)
-                              : (dir > 0 ? d > 34 : d < -34);
-      knob.style.transition = 'transform 420ms cubic-bezier(.22,1.35,.36,1)';
-      knob.style.transform = 'none';
-      if (ok) { tapFx(knob); burst(cap); flash(stage); }
-    };
-    knob.addEventListener('pointerup', end);
-    knob.addEventListener('pointercancel', end);
+    while (alive.length > LIMIT) {
+      const old = alive.shift();
+      if (old !== box && old.__fr) { old.__fr.remove(); old.__fr = null;
+        const b = old.querySelector('.boot'); if (b) b.classList.remove('off'); }
+    }
+  };
+
+  document.querySelectorAll('.proto').forEach((box) => {
+    // высоту резервируем сразу: иначе блок до подъёма кадра схлопнут в ноль
+    // и страница дёргается, пока кадры поднимаются по мере прокрутки
+    box.style.height = ((+box.getAttribute('data-tall') || 60) + 88) + 'px';
+    const boot = document.createElement('span');
+    boot.className = 'boot';
+    boot.textContent = 'загружаю прототип…';
+    box.appendChild(boot);
   });
 
-  // капля: ползунок = прижим кнопки, формулы из window.__ioAlertDrag
-  function setupBlob(stage, cap, knob) {
-    const slider = stage.querySelector('[data-blob-slider]');
-    const layer = document.createElement('span');
-    layer.style.cssText = 'position:absolute;inset:0;border-radius:inherit;overflow:hidden;pointer-events:none;z-index:1;' +
-      'filter:drop-shadow(0 0 8px rgba(58,220,235,.55));';
-    layer.innerHTML = '<img src="alert-blob.png" alt="" style="position:absolute;left:-3%;top:-6%;height:112%;width:auto">' +
-      '<b style="position:absolute;left:17px;top:11px;transform:translate(-50%,-50%);color:#fff;font-size:12px;' +
-      'font-weight:700;font-family:-apple-system,sans-serif;text-shadow:0 1px 2px rgba(30,40,90,.35)">3</b>';
-    cap.appendChild(layer);
-    const img = layer.querySelector('img'), num = layer.querySelector('b');
-    img.style.transformOrigin = '4% 12%';
-    const apply = () => {
-      const k = slider.value / 100;
-      const max = (cap.offsetWidth - knob.offsetWidth) / 2 - 4;
-      knob.style.transition = 'none';
-      knob.style.transform = 'translateX(' + (-k * max) + 'px)';
-      img.style.transform = 'translateY(' + (k * 8) + 'px) scale(' + (1 - k * 0.58) + ',' + (1 + k * 1.15) + ')' +
-        ' skewY(' + (k * 9) + 'deg) rotate(' + (-k * 7) + 'deg)';
-      img.style.filter = 'brightness(' + (1 + k * 0.3) + ') saturate(' + (1 + k * 0.25) + ')';
-      img.style.opacity = String(Math.max(0, 1 - Math.max(0, k - 0.85) / 0.15));
-      num.style.opacity = String(1 - k * 0.85);
-      // кольца ожидания идут от кнопки: пока её ведут, пульс гаснет
-      const rings = pulsesOf(cap);
-      if (rings) { rings.style.transition = 'opacity 240ms ease'; rings.style.opacity = String(Math.max(0, 1 - k * 4)); }
-      const knobX = cap.offsetWidth / 2 - k * max;
-      const hole = 'radial-gradient(circle at ' + knobX + 'px 50%, transparent 22px, rgba(0,0,0,.55) 28px, #000 35px)';
-      layer.style.webkitMaskImage = hole; layer.style.maskImage = hole;
-    };
-    slider.addEventListener('input', apply);
-    apply();
-  }
+  const io = new IntersectionObserver((rows) => {
+    rows.forEach((row) => { if (row.isIntersecting) mount(row.target); });
+  }, { rootMargin: '200px' });
+  document.querySelectorAll('.proto').forEach((box) => io.observe(box));
 
+  // морф меню: переключаем состояние в прототипе, а не имитируем его
   const mbtn = document.querySelector('[data-morph-btn]');
   if (mbtn) {
     let on = false;
-    const plate = document.querySelector('[data-home-plate]');
-    const segs = [document.querySelector('[data-seg-l]'), document.querySelector('[data-seg-r]')];
     mbtn.addEventListener('click', () => {
+      const box = document.querySelector('[data-proto="morph"]');
+      const w = box && box.__fr && box.__fr.contentWindow;
+      if (!w || !w.__ioDockMode) return;
       on = !on;
-      plate.style.opacity = on ? '0' : '1';
-      segs.forEach((sg) => { sg.style.opacity = on ? '1' : '0'; sg.style.transform = on ? 'scale(1)' : 'scale(.6)'; });
+      w.__ioDockMode(on, false, false);
     });
   }
+
+  // пересчёт положения кадра при смене размеров окна
+  let rz = 0;
+  addEventListener('resize', () => {
+    clearTimeout(rz);
+    rz = setTimeout(() => {
+      document.querySelectorAll('.proto').forEach((box) => {
+        if (!box.__fr || !box.__fr.contentDocument) return;
+        settle(box.__fr, +box.getAttribute('data-tall') || 60, box.getAttribute('data-proto'));
+      });
+    }, 200);
+  });
 })();
 </script>
 </body>
