@@ -1,0 +1,47 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ПИНГ — One Space</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ПИНГ">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" sizes="180x180" href="icon.png">
+<style>
+:root{color-scheme:light}
+html,body{margin:0;min-height:100%;background:linear-gradient(180deg,#dbe9ff,#eef4ff);font-family:-apple-system,system-ui,"SF Pro Text",Roboto,sans-serif;color:#1f2d3a}
+main{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.card{width:min(360px,100%);background:rgba(255,255,255,.86);border-radius:24px;padding:28px 22px 22px;box-shadow:0 12px 40px rgba(30,60,110,.14);text-align:center}
+.icon{width:96px;height:96px;border-radius:22px;display:block;margin:0 auto 14px;box-shadow:0 8px 24px rgba(20,40,100,.25)}
+h1{font-size:22px;margin:0 0 4px;letter-spacing:-.2px}
+p{margin:0;color:#5d6b7a;font-size:15px;line-height:1.4}
+ol{text-align:left;margin:18px 0 0;padding:0;list-style:none;display:grid;gap:10px}
+li{display:flex;gap:12px;align-items:center;background:#fff;border-radius:14px;padding:12px 14px;font-size:15px}
+li b{flex:none;width:26px;height:26px;border-radius:13px;background:#3a7ef7;color:#fff;display:grid;place-items:center;font-size:13px}
+.share{display:inline-block;width:18px;height:18px;vertical-align:-3px;margin:0 2px}
+a.btn{display:block;margin-top:18px;padding:14px;border-radius:14px;background:#3a7ef7;color:#fff;text-decoration:none;font-weight:600;font-size:16px}
+.hide{display:none}
+</style></head><body>
+<script>
+var APP='one-space://open/ping';
+var add=/[?&]add=1/.test(location.search);
+// ярлык с домашнего экрана: сразу в приложение
+if(!add){ location.replace(APP); }
+document.addEventListener('DOMContentLoaded',function(){document.getElementById(add?'open':'add').classList.add('hide');document.getElementById(add?'add':'open').classList.remove('hide');});
+</script>
+<main><div class="card">
+<img class="icon" src="icon.png" alt="">
+<h1>ПИНГ</h1>
+<div id="add" class="">
+<p>Добавьте ярлык на домашний экран — он будет открывать One Space сразу здесь.</p>
+<ol>
+<li><b>1</b><span>Нажмите «Поделиться» <svg class="share" viewBox="0 0 24 24" fill="none" stroke="#3a7ef7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13M8 7l4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg> внизу Safari</span></li>
+<li><b>2</b><span>Выберите «На экран „Домой“»</span></li>
+<li><b>3</b><span>Нажмите «Добавить» — готово</span></li>
+</ol>
+</div>
+<div id="open" class="hide">
+<p>Открываем One Space…</p>
+<a class="btn" href="one-space://open/ping">Открыть в One Space</a>
+</div>
+</div></main>
+</body></html>
