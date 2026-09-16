@@ -1,0 +1,1 @@
+{"name": "Новости", "short_name": "Новости", "start_url": "./", "scope": "./", "display": "standalone", "background_color": "#e4eeff", "theme_color": "#3a7ef7", "icons": [{"src": "icon.png", "sizes": "180x180", "type": "image/png"}]}

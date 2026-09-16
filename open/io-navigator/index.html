@@ -6,6 +6,7 @@
 <meta name="apple-mobile-web-app-title" content="Навигатор">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="apple-touch-icon" sizes="180x180" href="icon.png">
+<link rel="manifest" href="manifest.webmanifest">
 <style>
 :root{color-scheme:light}
 html,body{margin:0;min-height:100%;background:linear-gradient(180deg,#dbe9ff,#eef4ff);font-family:-apple-system,system-ui,"SF Pro Text",Roboto,sans-serif;color:#1f2d3a}
@@ -23,10 +24,12 @@ a.btn{display:block;margin-top:18px;padding:14px;border-radius:14px;background:#
 </style></head><body>
 <script>
 var APP='one-space://open/io-navigator';
-var add=/[?&]add=1/.test(location.search);
-// ярлык с домашнего экрана: сразу в приложение
-if(!add){ location.replace(APP); }
-document.addEventListener('DOMContentLoaded',function(){document.getElementById(add?'open':'add').classList.add('hide');document.getElementById(add?'add':'open').classList.remove('hide');});
+var fromClip=(navigator.standalone===true)||/[?&]go=1/.test(location.search);
+if(fromClip){ location.replace(APP); }
+document.addEventListener('DOMContentLoaded',function(){
+  document.getElementById(fromClip?'add':'open').classList.add('hide');
+  document.getElementById(fromClip?'open':'add').classList.remove('hide');
+});
 </script>
 <main><div class="card">
 <img class="icon" src="icon.png" alt="">
